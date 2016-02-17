@@ -29,10 +29,35 @@ class LongitudinalQuantification(slicer.ScriptedLoadableModule.ScriptedLoadableM
 class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget):
 
     def setup(self):
-        print "Longitudinal Quantification widget setup"
+        print "----- Longitudinal Quantification widget setup -----"
+        # Setup and global variables
         slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget.setup(self)
-        self.logic = LongitudinalQuantificationLogic()
+        self.logic = LongitudinalQuantificationLogic(self)
 
+        # Definition of the UI interface
+        loader = qt.QUiLoader()
+        moduleName = 'LongitudinalQuantification'
+        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
+        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
+        path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
+
+        qfile = qt.QFile(path)
+        qfile.open(qt.QFile.ReadOnly)
+        widget = loader.load(qfile, self.parent)
+        self.layout = self.parent.layout()
+        self.widget = widget
+        self.layout.addWidget(widget)
+
+        #--------------------------- Scene --------------------------#
+        treeView = self.logic.get("treeView")
+        treeView.setMRMLScene(slicer.app.mrmlScene())
+        treeView.sceneModel().setHorizontalHeaderLabels(["Models"])
+        treeView.sortFilterProxyModel().nodeTypes = ['vtkMRMLModelNode']
+        treeView.header().setVisible(False)
+        self.autoChangeLayout = self.logic.get("autoChangeLayout")
+        self.computeBox = self.logic.get("computeBox")
+
+        # Connections
         slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, self.onCloseScene)
 
     # function called each time that the user "enter" in Longitudinal Quantification interface
@@ -49,16 +74,31 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
 
 
 class LongitudinalQuantificationLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
-    def __init__(self):
-        print "Longitudinal Quantification logic init"
+    def __init__(self, interface):
+        print "----- Longitudinal Quantification logic init -----"
+        self.interface = interface
+
+    # Useful functions for the recuperation and connection of the User Interface from the .ui file.
+    def get(self, objectName):
+        return self.findWidget(self.interface.widget, objectName)
+
+    def findWidget(self, widget, objectName):
+        if widget.objectName == objectName:
+            return widget
+        else:
+            for w in widget.children():
+                resulting_widget = self.findWidget(w, objectName)
+                if resulting_widget:
+                    return resulting_widget
+            return None
 
 
 class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoadableModuleTest):
     def __init__(self):
-        print "Longitudinal Quantification test init"
+        print "----- Longitudinal Quantification test init -----"
 
     def setUp(self):
-        print "Longitudinal Quantification test setup"
+        print "----- Longitudinal Quantification test setup -----"
         # reset the state - clear scene
         slicer.mrmlScene.Clear(0)
 
