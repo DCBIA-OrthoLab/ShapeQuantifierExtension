@@ -39,7 +39,7 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget.setup(self)
         self.logic = LongitudinalQuantificationLogic(self)
 
-        # ------ Initialisation of the other modules is Slicer, if that's not already done -----#
+        # ------ Initialisation of the other modules is Slicer, if that's not already done ----- #
         if not hasattr(slicer.modules, 'AnglePlanesWidget'):
             slicer.modules.angleplanes.createNewWidgetRepresentation()
         if not hasattr(slicer.modules, 'EasyClipWidget'):
@@ -53,15 +53,18 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         if not hasattr(slicer.modules, 'SurfaceRegistrationWidget'):
             slicer.modules.surfaceregistration.createNewWidgetRepresentation()
 
-        # ------ Creation of a dictionary that will contain the widgets of all the modules -----#
+        # ------ Creation of a dictionary that will contain the widgets of all the modules ----- #
         self.ExternalModulesWidgets = dict()
         self.ExternalModulesWidgets["Angle Planes"] = slicer.modules.AnglePlanesWidget.widget
         self.ExternalModulesWidgets["Easy Clip"] = slicer.modules.EasyClipWidget.widget
-        self.ExternalModulesWidgets["Mesh Statistics"] = slicer.modules.MeshStatisticsWidget.widget
+        #self.ExternalModulesWidgets["Mesh Statistics"] = slicer.modules.MeshStatisticsWidget.widget
         self.ExternalModulesWidgets["Model to Model Distance"] = slicer.modules.modeltomodeldistance.widgetRepresentation()
         self.ExternalModulesWidgets["Pick and Paint"] = slicer.modules.PickAndPaintWidget.widget
         self.ExternalModulesWidgets["Q3DC"] = slicer.modules.Q3DCWidget.widget
         self.ExternalModulesWidgets["Surface Registration"] = slicer.modules.SurfaceRegistrationWidget.widget
+
+        # ------ Initialisation of variables to know wich module is currently used ----- #
+        self.curentQuantificationWidget = None
 
         # ---------------------------------------------------------------- #
         # ---------------- Definition of the UI interface ---------------- #
@@ -92,24 +95,50 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.autoChangeLayout = self.logic.get("autoChangeLayout")
         self.computeBox = self.logic.get("computeBox")
 
-        # Connections
+        # ------ Quantification Collapsible Button ----- #
+        self.QuantificationCollapsibleButton = self.logic.get("QuantificationCollapsibleButton")
+        self.QuantificationLayout = self.logic.get("QuantificationLayout")
+        self.QuantificationCoiceComboBox = self.logic.get("QuantificationCoiceComboBox")
+
+        # ------ Analisis Collapsible Button ----- #
+        self.AnalysisCollapsibleButton = self.logic.get("AnalysisCollapsibleButton")
+
+        # --------------------------------------------- #
+        # ---------------- Connections ---------------- #
+        # --------------------------------------------- #
+
+        # ------ Scene Collapsible Button ----- #
+
+        # ------ Quantification Collapsible Button ----- #
+        self.QuantificationCoiceComboBox.connect('currentIndexChanged(QString)', self.onQuantificationSelectionChanged)
+
+        # ------ Analisis Collapsible Button ----- #
         slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, self.onCloseScene)
 
     # function called each time that the user "enter" in Longitudinal Quantification interface
     def enter(self):
-        print " ---- Enter Longitudinal Quantification ---- "
+        print "---- Enter Longitudinal Quantification ---- "
         pass
 
     # function called each time that the user "exit" in Longitudinal Quantification interface
     def exit(self):
-        print " ---- Exit Longitudinal Quantification ---- "
+        print "---- Exit Longitudinal Quantification ---- "
         pass
 
     # function called each time that the scene is closed (if Longitudinal Quantification has been initialized)
     def onCloseScene(self, obj, event):
-        print " ---- Close Longitudinal Quantification ---- "
+        print "---- Close Longitudinal Quantification ---- "
         pass
 
+    def onQuantificationSelectionChanged(self, module):
+        print "--- onQuantificationSelectionChanged --- "
+        if self.curentQuantificationWidget:
+            self.QuantificationLayout.removeWidget(self.curentQuantificationWidget)
+        if module == "None":
+            self.curentQuantificationWidget = None
+            return
+        self.curentQuantificationWidget = self.ExternalModulesWidgets[module]
+        self.QuantificationLayout.addWidget(self.ExternalModulesWidgets[module])
 
 class LongitudinalQuantificationLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
 

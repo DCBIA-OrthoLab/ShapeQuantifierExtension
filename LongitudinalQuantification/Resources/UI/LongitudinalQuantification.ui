@@ -63,6 +63,63 @@
     </widget>
    </item>
    <item>
+    <widget class="ctkCollapsibleButton" name="QuantificationCollapsibleButton">
+     <property name="text">
+      <string>Quantification</string>
+     </property>
+     <property name="contentsFrameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <layout class="QVBoxLayout" name="QuantificationLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Select quantification module:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ctkComboBox" name="QuantificationCoiceComboBox">
+          <item>
+           <property name="text">
+            <string>None</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Angle Planes</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Model to Model Distance</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Q3DC</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="AnalysisCollapsibleButton">
+     <property name="text">
+      <string>Analysis</string>
+     </property>
+     <property name="contentsFrameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -94,6 +151,11 @@
    <extends>QWidget</extends>
    <header>ctkCollapsibleButton.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ctkComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ctkComboBox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
