@@ -21,7 +21,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="ctkCollapsibleButton" name="loadCollapsibleButton">
+    <widget class="ctkCollapsibleButton" name="SceneCollapsibleButton">
      <property name="text">
       <string>Scene</string>
      </property>

@@ -30,11 +30,45 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
 
     def setup(self):
         print "----- Longitudinal Quantification widget setup -----"
-        # Setup and global variables
+
+        # ------------------------------------------------------------------------------ #
+        # ---------------- Setup and initialisation of global variables ---------------- #
+        # ------------------------------------------------------------------------------ #
+
+        # ------ Initialisation of Longitudinal quantification and its logic ----- #
         slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget.setup(self)
         self.logic = LongitudinalQuantificationLogic(self)
 
-        # Definition of the UI interface
+        # ------ Initialisation of the other modules is Slicer, if that's not already done -----#
+        if not hasattr(slicer.modules, 'AnglePlanesWidget'):
+            slicer.modules.angleplanes.createNewWidgetRepresentation()
+        if not hasattr(slicer.modules, 'EasyClipWidget'):
+            slicer.modules.easyclip.createNewWidgetRepresentation()
+        if not hasattr(slicer.modules, 'MeshStatisticsWidget'):
+            slicer.modules.meshstatistics.createNewWidgetRepresentation()
+        if not hasattr(slicer.modules, 'PickAndPaintWidget'):
+            slicer.modules.pickandpaint.createNewWidgetRepresentation()
+        if not hasattr(slicer.modules, 'Q3DCWidget'):
+            slicer.modules.q3dc.createNewWidgetRepresentation()
+        if not hasattr(slicer.modules, 'SurfaceRegistrationWidget'):
+            slicer.modules.surfaceregistration.createNewWidgetRepresentation()
+
+        # ------ Creation of a dictionary that will contain the widgets of all the modules -----#
+        self.ExternalModulesWidgets = dict()
+        self.ExternalModulesWidgets["Angle Planes"] = slicer.modules.AnglePlanesWidget.widget
+        self.ExternalModulesWidgets["Easy Clip"] = slicer.modules.EasyClipWidget.widget
+        self.ExternalModulesWidgets["Mesh Statistics"] = slicer.modules.MeshStatisticsWidget.widget
+        self.ExternalModulesWidgets["Model to Model Distance"] = slicer.modules.modeltomodeldistance.widgetRepresentation()
+        self.ExternalModulesWidgets["Pick and Paint"] = slicer.modules.PickAndPaintWidget.widget
+        self.ExternalModulesWidgets["Q3DC"] = slicer.modules.Q3DCWidget.widget
+        self.ExternalModulesWidgets["Surface Registration"] = slicer.modules.SurfaceRegistrationWidget.widget
+
+        # ---------------------------------------------------------------- #
+        # ---------------- Definition of the UI interface ---------------- #
+        # ---------------------------------------------------------------- #
+
+        # ------------ Loading of the .ui file ---------- #
+
         loader = qt.QUiLoader()
         moduleName = 'LongitudinalQuantification'
         scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
@@ -48,11 +82,12 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.widget = widget
         self.layout.addWidget(widget)
 
-        #--------------------------- Scene --------------------------#
+        # ------ Scene Collapsible Button ----- #
+        self.SceneCollapsibleButton = self.logic.get("SceneCollapsibleButton")
         treeView = self.logic.get("treeView")
         treeView.setMRMLScene(slicer.app.mrmlScene())
         treeView.sceneModel().setHorizontalHeaderLabels(["Models"])
-        treeView.sortFilterProxyModel().nodeTypes = ['vtkMRMLModelNode']
+        treeView.sortFilterProxyModel().nodeTypes = ['vtkMRMLModelNode','vtkMRMLMarkupsFiducialNode']
         treeView.header().setVisible(False)
         self.autoChangeLayout = self.logic.get("autoChangeLayout")
         self.computeBox = self.logic.get("computeBox")
@@ -62,26 +97,39 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
 
     # function called each time that the user "enter" in Longitudinal Quantification interface
     def enter(self):
+        print " ---- Enter Longitudinal Quantification ---- "
         pass
 
     # function called each time that the user "exit" in Longitudinal Quantification interface
     def exit(self):
+        print " ---- Exit Longitudinal Quantification ---- "
         pass
 
     # function called each time that the scene is closed (if Longitudinal Quantification has been initialized)
     def onCloseScene(self, obj, event):
+        print " ---- Close Longitudinal Quantification ---- "
         pass
 
 
 class LongitudinalQuantificationLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
+
+    # --------------------------------------------------- #
+    # ----------- Initialisation of the logic ----------- #
+    # --------------------------------------------------- #
     def __init__(self, interface):
         print "----- Longitudinal Quantification logic init -----"
         self.interface = interface
 
-    # Useful functions for the recuperation and connection of the User Interface from the .ui file.
+    # -------------------------------------------------------- #
+    # ----------- Connection of the User Interface ----------- #
+    # -------------------------------------------------------- #
+
+    # This function will look for an object with the given name in the UI and return it.
     def get(self, objectName):
         return self.findWidget(self.interface.widget, objectName)
 
+    # This function will recursively look into all the object of the UI and compare it to
+    # the given name, if it never find it will return "None"
     def findWidget(self, widget, objectName):
         if widget.objectName == objectName:
             return widget
