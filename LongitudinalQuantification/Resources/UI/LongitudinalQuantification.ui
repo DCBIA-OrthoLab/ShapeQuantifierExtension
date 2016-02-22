@@ -63,6 +63,48 @@
     </widget>
    </item>
    <item>
+    <widget class="ctkCollapsibleButton" name="PreprocessingCollapsibleButton">
+     <property name="text">
+      <string>Preprocessing</string>
+     </property>
+     <property name="contentsFrameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <layout class="QVBoxLayout" name="PreprocessingLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Select preprocessing module:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ctkComboBox" name="PreprocessingChoiceComboBox">
+          <item>
+           <property name="text">
+            <string>None</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Easy Clip</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Surface Registration</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="ctkCollapsibleButton" name="QuantificationCollapsibleButton">
      <property name="text">
       <string>Quantification</string>
@@ -81,7 +123,7 @@
          </widget>
         </item>
         <item>
-         <widget class="ctkComboBox" name="QuantificationCoiceComboBox">
+         <widget class="ctkComboBox" name="QuantificationChoiceComboBox">
           <item>
            <property name="text">
             <string>None</string>
@@ -117,6 +159,43 @@
      <property name="contentsFrameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
+     <layout class="QVBoxLayout" name="AnalysisLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Select Analysis module: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ctkComboBox" name="AnalysisChoiceComboBox">
+          <item>
+           <property name="text">
+            <string>None</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Mesh Statistic</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Pick &amp; Paint</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Shape Population Viewer</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

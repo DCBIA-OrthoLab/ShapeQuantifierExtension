@@ -31,40 +31,9 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
     def setup(self):
         print "----- Longitudinal Quantification widget setup -----"
 
-        # ------------------------------------------------------------------------------ #
-        # ---------------- Setup and initialisation of global variables ---------------- #
-        # ------------------------------------------------------------------------------ #
-
         # ------ Initialisation of Longitudinal quantification and its logic ----- #
         slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget.setup(self)
         self.logic = LongitudinalQuantificationLogic(self)
-
-        # ------ Initialisation of the other modules is Slicer, if that's not already done ----- #
-        if not hasattr(slicer.modules, 'AnglePlanesWidget'):
-            slicer.modules.angleplanes.createNewWidgetRepresentation()
-        if not hasattr(slicer.modules, 'EasyClipWidget'):
-            slicer.modules.easyclip.createNewWidgetRepresentation()
-        if not hasattr(slicer.modules, 'MeshStatisticsWidget'):
-            slicer.modules.meshstatistics.createNewWidgetRepresentation()
-        if not hasattr(slicer.modules, 'PickAndPaintWidget'):
-            slicer.modules.pickandpaint.createNewWidgetRepresentation()
-        if not hasattr(slicer.modules, 'Q3DCWidget'):
-            slicer.modules.q3dc.createNewWidgetRepresentation()
-        if not hasattr(slicer.modules, 'SurfaceRegistrationWidget'):
-            slicer.modules.surfaceregistration.createNewWidgetRepresentation()
-
-        # ------ Creation of a dictionary that will contain the widgets of all the modules ----- #
-        self.ExternalModulesWidgets = dict()
-        self.ExternalModulesWidgets["Angle Planes"] = slicer.modules.AnglePlanesWidget.widget
-        self.ExternalModulesWidgets["Easy Clip"] = slicer.modules.EasyClipWidget.widget
-        self.ExternalModulesWidgets["Mesh Statistics"] = slicer.modules.MeshStatisticsWidget.widget
-        self.ExternalModulesWidgets["Model to Model Distance"] = slicer.modules.modeltomodeldistance.widgetRepresentation()
-        self.ExternalModulesWidgets["Pick and Paint"] = slicer.modules.PickAndPaintWidget.widget
-        self.ExternalModulesWidgets["Q3DC"] = slicer.modules.Q3DCWidget.widget
-        self.ExternalModulesWidgets["Surface Registration"] = slicer.modules.SurfaceRegistrationWidget.widget
-
-        # ------ Initialisation of variables to know wich module is currently used ----- #
-        self.curentQuantificationWidget = None
 
         # ---------------------------------------------------------------- #
         # ---------------- Definition of the UI interface ---------------- #
@@ -95,13 +64,55 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.autoChangeLayout = self.logic.get("autoChangeLayout")
         self.computeBox = self.logic.get("computeBox")
 
+        # ------ Preprocessing Collapsible Button ----- #
+        self.PreprocessingCollapsibleButton = self.logic.get("PreprocessingCollapsibleButton")
+        self.PreprocessingLayout = self.logic.get("PreprocessingLayout")
+        self.PreprocessingChoiceComboBox = self.logic.get("PreprocessingChoiceComboBox")
+
         # ------ Quantification Collapsible Button ----- #
         self.QuantificationCollapsibleButton = self.logic.get("QuantificationCollapsibleButton")
         self.QuantificationLayout = self.logic.get("QuantificationLayout")
-        self.QuantificationCoiceComboBox = self.logic.get("QuantificationCoiceComboBox")
+        self.QuantificationChoiceComboBox = self.logic.get("QuantificationChoiceComboBox")
 
-        # ------ Analisis Collapsible Button ----- #
+        # ------ Analysis Collapsible Button ----- #
         self.AnalysisCollapsibleButton = self.logic.get("AnalysisCollapsibleButton")
+        self.AnalysisLayout = self.logic.get("AnalysisLayout")
+        self.AnalysisChoiceComboBox = self.logic.get("AnalysisChoiceComboBox")
+
+        # ------------------------------------------------------------------------------ #
+        # ---------------- Setup and initialisation of global variables ---------------- #
+        # ------------------------------------------------------------------------------ #
+
+        # ------ Initialisation of the other modules is Slicer, if that's not already done ----- #
+        if not hasattr(slicer.modules, 'AnglePlanesWidget'):
+            slicer.modules.angleplanes.createNewWidgetRepresentation()
+        if not hasattr(slicer.modules, 'EasyClipWidget'):
+            slicer.modules.easyclip.createNewWidgetRepresentation()
+        if not hasattr(slicer.modules, 'MeshStatisticsWidget'):
+            slicer.modules.meshstatistics.createNewWidgetRepresentation()
+        if not hasattr(slicer.modules, 'PickAndPaintWidget'):
+            slicer.modules.pickandpaint.createNewWidgetRepresentation()
+        if not hasattr(slicer.modules, 'Q3DCWidget'):
+            slicer.modules.q3dc.createNewWidgetRepresentation()
+        if not hasattr(slicer.modules, 'SurfaceRegistrationWidget'):
+            slicer.modules.surfaceregistration.createNewWidgetRepresentation()
+
+        # ------ Creation of a dictionary that will contain the widgets of all the modules ----- #
+        self.ExternalModulesWidgets = dict()
+        self.ExternalModulesWidgets["Angle Planes"] = slicer.modules.AnglePlanesWidget.widget
+        self.ExternalModulesWidgets["Easy Clip"] = slicer.modules.EasyClipWidget.widget
+        self.ExternalModulesWidgets["Mesh Statistics"] = slicer.modules.MeshStatisticsWidget.widget
+        self.ExternalModulesWidgets["Model to Model Distance"] = slicer.modules.modeltomodeldistance.widgetRepresentation()
+        self.ExternalModulesWidgets["Pick and Paint"] = slicer.modules.PickAndPaintWidget.widget
+        self.ExternalModulesWidgets["Q3DC"] = slicer.modules.Q3DCWidget.widget
+        self.ExternalModulesWidgets["Shape Population Viewer"] = slicer.modules.launcher.widgetRepresentation()
+        self.ExternalModulesWidgets["Surface Registration"] = slicer.modules.SurfaceRegistrationWidget.widget
+
+        # ------ Initialisation of variables to know wich module is currently used ----- #
+        self.curentQuantificationWidget = dict()
+        self.curentQuantificationWidget[self.PreprocessingLayout] = None
+        self.curentQuantificationWidget[self.QuantificationLayout] = None
+        self.curentQuantificationWidget[self.AnalysisLayout] = None
 
         # --------------------------------------------- #
         # ---------------- Connections ---------------- #
@@ -109,10 +120,16 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
 
         # ------ Scene Collapsible Button ----- #
 
-        # ------ Quantification Collapsible Button ----- #
-        self.QuantificationCoiceComboBox.connect('currentIndexChanged(QString)', self.onQuantificationSelectionChanged)
+        # ------ Preprocessing Collapsible Button ----- #
+        self.PreprocessingChoiceComboBox.connect('currentIndexChanged(QString)', self.onPreprocessingSelectionChanged)
 
-        # ------ Analisis Collapsible Button ----- #
+        # ------ Quantification Collapsible Button ----- #
+        self.QuantificationChoiceComboBox.connect('currentIndexChanged(QString)', self.onQuantificationSelectionChanged)
+
+        # ------ Analysis Collapsible Button ----- #
+        self.AnalysisChoiceComboBox.connect('currentIndexChanged(QString)', self.onAnalysisSelectionChanged)
+
+        # ------ Closing of the scene -----#
         slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, self.onCloseScene)
 
     # function called each time that the user "enter" in Longitudinal Quantification interface
@@ -126,21 +143,32 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
     # function called each time that the scene is closed (if Longitudinal Quantification has been initialized)
     def onCloseScene(self, obj, event):
         print "---- Close Longitudinal Quantification ---- "
-        if self.curentQuantificationWidget:
-            self.QuantificationLayout.removeWidget(self.curentQuantificationWidget)
-            self.curentQuantificationWidget.hide()
+        self.PreprocessingChoiceComboBox.setCurrentIndex(0)
+        self.QuantificationChoiceComboBox.setCurrentIndex(0)
+        self.AnalysisChoiceComboBox.setCurrentIndex(0)
 
-    def onQuantificationSelectionChanged(self, module):
+    def onPreprocessingSelectionChanged(self, newModule):
+        print "--- onPreprocessingSelectionChanged --- "
+        self.moduleChangement(self.PreprocessingLayout, newModule)
+
+    def onQuantificationSelectionChanged(self, newModule):
         print "--- onQuantificationSelectionChanged --- "
-        if self.curentQuantificationWidget:
-            self.QuantificationLayout.removeWidget(self.curentQuantificationWidget)
-            self.curentQuantificationWidget.hide()
-        if module == "None":
-            self.curentQuantificationWidget = None
+        self.moduleChangement(self.QuantificationLayout, newModule)
+
+    def onAnalysisSelectionChanged(self, newModule):
+        print "--- onAnalysisSelectionChanged --- "
+        self.moduleChangement(self.AnalysisLayout, newModule)
+
+    def moduleChangement(self, layout, newModule):
+        if self.curentQuantificationWidget[layout]:
+            layout.removeWidget(self.curentQuantificationWidget[layout])
+            self.curentQuantificationWidget[layout].hide()
+        if newModule == "None":
+            self.curentQuantificationWidget[layout] = None
             return
-        self.curentQuantificationWidget = self.ExternalModulesWidgets[module]
-        self.QuantificationLayout.addWidget(self.curentQuantificationWidget)
-        self.curentQuantificationWidget.show()
+        self.curentQuantificationWidget[layout] = self.ExternalModulesWidgets[newModule]
+        layout.addWidget(self.curentQuantificationWidget[layout])
+        self.curentQuantificationWidget[layout].show()
 
 class LongitudinalQuantificationLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
 
