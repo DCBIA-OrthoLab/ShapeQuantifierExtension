@@ -57,7 +57,7 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.ExternalModulesWidgets = dict()
         self.ExternalModulesWidgets["Angle Planes"] = slicer.modules.AnglePlanesWidget.widget
         self.ExternalModulesWidgets["Easy Clip"] = slicer.modules.EasyClipWidget.widget
-        #self.ExternalModulesWidgets["Mesh Statistics"] = slicer.modules.MeshStatisticsWidget.widget
+        self.ExternalModulesWidgets["Mesh Statistics"] = slicer.modules.MeshStatisticsWidget.widget
         self.ExternalModulesWidgets["Model to Model Distance"] = slicer.modules.modeltomodeldistance.widgetRepresentation()
         self.ExternalModulesWidgets["Pick and Paint"] = slicer.modules.PickAndPaintWidget.widget
         self.ExternalModulesWidgets["Q3DC"] = slicer.modules.Q3DCWidget.widget
@@ -118,27 +118,29 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
     # function called each time that the user "enter" in Longitudinal Quantification interface
     def enter(self):
         print "---- Enter Longitudinal Quantification ---- "
-        pass
 
     # function called each time that the user "exit" in Longitudinal Quantification interface
     def exit(self):
         print "---- Exit Longitudinal Quantification ---- "
-        pass
 
     # function called each time that the scene is closed (if Longitudinal Quantification has been initialized)
     def onCloseScene(self, obj, event):
         print "---- Close Longitudinal Quantification ---- "
-        pass
+        if self.curentQuantificationWidget:
+            self.QuantificationLayout.removeWidget(self.curentQuantificationWidget)
+            self.curentQuantificationWidget.hide()
 
     def onQuantificationSelectionChanged(self, module):
         print "--- onQuantificationSelectionChanged --- "
         if self.curentQuantificationWidget:
             self.QuantificationLayout.removeWidget(self.curentQuantificationWidget)
+            self.curentQuantificationWidget.hide()
         if module == "None":
             self.curentQuantificationWidget = None
             return
         self.curentQuantificationWidget = self.ExternalModulesWidgets[module]
-        self.QuantificationLayout.addWidget(self.ExternalModulesWidgets[module])
+        self.QuantificationLayout.addWidget(self.curentQuantificationWidget)
+        self.curentQuantificationWidget.show()
 
 class LongitudinalQuantificationLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
 
