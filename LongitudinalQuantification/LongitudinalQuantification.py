@@ -108,7 +108,7 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.ExternalModulesWidgets["Shape Population Viewer"] = slicer.modules.launcher.widgetRepresentation()
         self.ExternalModulesWidgets["Surface Registration"] = slicer.modules.SurfaceRegistrationWidget.widget
 
-        # ------ Initialisation of variables to know wich module is currently used ----- #
+        # ------ Initialisation of variables to know which module is currently used ----- #
         self.curentQuantificationWidget = dict()
         self.curentQuantificationWidget[self.PreprocessingLayout] = None
         self.curentQuantificationWidget[self.QuantificationLayout] = None

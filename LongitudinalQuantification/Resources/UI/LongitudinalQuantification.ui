@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>481</width>
-    <height>775</height>
+    <width>540</width>
+    <height>1007</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -37,25 +37,181 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="autoChangeLayout">
+       <widget class="QPushButton" name="computeBox">
         <property name="text">
-         <string>Automatically change layout to 3D only</string>
+         <string>Compute around bounding box</string>
         </property>
-        <property name="checkable">
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="ctkCollapsibleButton" name="CollapsibleButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Data Selection</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <property name="contentsFrameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QRadioButton" name="radioButton">
+          <property name="text">
+           <string>Measures on a single model</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioButton_2">
+          <property name="text">
+           <string>Measures between two models</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="toolTip">
+         <string>In the case of the usage of surface registration, this model is considered as the fixed model.</string>
+        </property>
+        <property name="title">
+         <string>Model 1</string>
+        </property>
+        <layout class="QFormLayout" name="formLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_4">
+           <property name="toolTip">
+            <string>In the case of the usage of surface registration, this model is considered as the fixed model.</string>
+           </property>
+           <property name="text">
+            <string>Model:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_2">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="toolTip">
+            <string>In the case of the usage of surface registration, this model is considered as the fixed model.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="toolTip">
+            <string>In the case of the usage of surface registration, this landmarks list is considered as the fixed landmarks list.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_5">
+           <property name="toolTip">
+            <string>In the case of the usage of surface registration, this landmarks list is considered as the fixed landmarks list.</string>
+           </property>
+           <property name="text">
+            <string>Landmarks:</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_2">
+        <property name="enabled">
          <bool>false</bool>
         </property>
-        <property name="checked">
-         <bool>false</bool>
+        <property name="title">
+         <string>Model 2</string>
         </property>
-        <property name="tristate">
-         <bool>false</bool>
+        <layout class="QFormLayout" name="formLayout_2">
+         <item row="0" column="1">
+          <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_4">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>In the case of the usage of surface registration, this model is considered as the moving model.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="qMRMLNodeComboBox" name="MRMLNodeComboBox_3">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>In the case of the usage of surface registration, this landmarks list is considered as the moving landmarks list.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_6">
+           <property name="toolTip">
+            <string>In the case of the usage of surface registration, this model is considered as the moving model.</string>
+           </property>
+           <property name="text">
+            <string>Model:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_7">
+           <property name="toolTip">
+            <string>In the case of the usage of surface registration, this landmarks list is considered as the moving landmarks list.</string>
+           </property>
+           <property name="text">
+            <string>Landmarks:</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>Next Step</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="computeBox">
+       <widget class="QCheckBox" name="checkBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
-         <string>Compute around bounding box</string>
+         <string>Be fully guided</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -97,6 +253,24 @@
             <string>Surface Registration</string>
            </property>
           </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QPushButton" name="pushButton_3">
+          <property name="text">
+           <string>Previus Step</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_2">
+          <property name="text">
+           <string>Next Step</string>
+          </property>
          </widget>
         </item>
        </layout>
@@ -148,6 +322,24 @@
         </item>
        </layout>
       </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QPushButton" name="pushButton_4">
+          <property name="text">
+           <string>Previus Step</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_5">
+          <property name="text">
+           <string>Next Step</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </item>
@@ -178,12 +370,12 @@
           </item>
           <item>
            <property name="text">
-            <string>Mesh Statistic</string>
+            <string>Mesh Statistics</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>Pick &amp; Paint</string>
+            <string>Pick and Paint</string>
            </property>
           </item>
           <item>
@@ -191,6 +383,24 @@
             <string>Shape Population Viewer</string>
            </property>
           </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <widget class="QPushButton" name="pushButton_6">
+          <property name="text">
+           <string>Previus Step</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_7">
+          <property name="text">
+           <string>Next Step</string>
+          </property>
          </widget>
         </item>
        </layout>
@@ -214,6 +424,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>qMRMLNodeComboBox</class>
+   <extends>QWidget</extends>
+   <header>qMRMLNodeComboBox.h</header>
+  </customwidget>
   <customwidget>
    <class>qMRMLTreeView</class>
    <extends>QTreeView</extends>
