@@ -2,6 +2,9 @@ from __main__ import vtk, qt, ctk, slicer
 import os
 import logging
 
+# *************************************************  ********** #
+# **************** Longitudinal Quantification **************** #
+# ************************************************************* #
 
 class LongitudinalQuantification(slicer.ScriptedLoadableModule.ScriptedLoadableModule):
     def __init__(self, parent):
@@ -25,8 +28,15 @@ class LongitudinalQuantification(slicer.ScriptedLoadableModule.ScriptedLoadableM
 
         self.parent = parent
 
+# ******************************************************************* #
+# **************** Longitudinal Quantification Widget *************** #
+# ******************************************************************* #
 
 class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget):
+
+    # ************************************************ #
+    # ---------------- Initialisation ---------------- #
+    # ************************************************ #
 
     def setup(self):
         print "----- Longitudinal Quantification widget setup -----"
@@ -114,6 +124,42 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.curentQuantificationWidget[self.QuantificationLayout] = None
         self.curentQuantificationWidget[self.AnalysisLayout] = None
 
+        # ------ Setup of the external modules ------ #
+        # Hiding of the scene tabs and the input tabs in
+        # all the external modules to avoid redundancies
+        # and make this module as clear and simple as possible
+
+        # AnglePlanes
+        slicer.modules.AnglePlanesWidget.SceneCollapsibleButton.hide()
+        slicer.modules.AnglePlanesWidget.inputModelLabel.hide()
+        slicer.modules.AnglePlanesWidget.inputLandmarksLabel.hide()
+        slicer.modules.AnglePlanesWidget.inputModelSelector.hide()
+        slicer.modules.AnglePlanesWidget.inputLandmarksSelector.hide()
+        slicer.modules.AnglePlanesWidget.loadLandmarksOnSurfacCheckBox.hide()
+
+        #EasyClip
+        slicer.modules.EasyClipWidget.SceneCollapsibleButton.hide()
+
+        #MeshStatistics
+
+        #PickAndPaint
+        slicer.modules.PickAndPaintWidget.inputModelLabel.hide()
+        slicer.modules.PickAndPaintWidget.inputLandmarksLabel.hide()
+        slicer.modules.PickAndPaintWidget.inputModelSelector.hide()
+        slicer.modules.PickAndPaintWidget.inputLandmarksSelector.hide()
+        slicer.modules.PickAndPaintWidget.loadLandmarksOnSurfacCheckBox.hide()
+
+        #Q3DC
+        slicer.modules.Q3DCWidget.SceneCollapsibleButton.hide()
+        slicer.modules.Q3DCWidget.inputModelLabel.hide()
+        slicer.modules.Q3DCWidget.inputLandmarksLabel.hide()
+        slicer.modules.Q3DCWidget.inputModelSelector.hide()
+        slicer.modules.Q3DCWidget.inputLandmarksSelector.hide()
+        slicer.modules.Q3DCWidget.loadLandmarksOnSurfacCheckBox.hide()
+
+        #Surfaceregostration
+        slicer.modules.SurfaceRegistrationWidget.InputCollapsibleButton.hide()
+
         # --------------------------------------------- #
         # ---------------- Connections ---------------- #
         # --------------------------------------------- #
@@ -131,6 +177,10 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
 
         # ------ Closing of the scene -----#
         slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, self.onCloseScene)
+
+    # ******************************************* #
+    # ---------------- Algorithm ---------------- #
+    # ******************************************* #
 
     # function called each time that the user "enter" in Longitudinal Quantification interface
     def enter(self):
@@ -170,19 +220,26 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         layout.addWidget(self.curentQuantificationWidget[layout])
         self.curentQuantificationWidget[layout].show()
 
+
+# ******************************************************************* #
+# **************** Longitudinal Quantification Logic **************** #
+# ******************************************************************* #
+
 class LongitudinalQuantificationLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
 
-    # --------------------------------------------------- #
-    # ----------- Initialisation of the logic ----------- #
-    # --------------------------------------------------- #
+    # ************************************************ #
+    # ---------------- Initialisation ---------------- #
+    # ************************************************ #
+
     def __init__(self, interface):
         print "----- Longitudinal Quantification logic init -----"
         self.interface = interface
 
-    # -------------------------------------------------------- #
-    # ----------- Connection of the User Interface ----------- #
-    # -------------------------------------------------------- #
+    # ******************************************* #
+    # ---------------- Algorithm ---------------- #
+    # ******************************************* #
 
+    # ----------- Connection of the User Interface ----------- #
     # This function will look for an object with the given name in the UI and return it.
     def get(self, objectName):
         return self.findWidget(self.interface.widget, objectName)
@@ -199,6 +256,10 @@ class LongitudinalQuantificationLogic(slicer.ScriptedLoadableModule.ScriptedLoad
                     return resulting_widget
             return None
 
+
+# ****************************************************************** #
+# **************** Longitudinal Quantification Test **************** #
+# ****************************************************************** #
 
 class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoadableModuleTest):
     def __init__(self):
