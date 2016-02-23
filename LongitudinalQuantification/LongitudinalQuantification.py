@@ -107,16 +107,26 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         if not hasattr(slicer.modules, 'SurfaceRegistrationWidget'):
             slicer.modules.surfaceregistration.createNewWidgetRepresentation()
 
+        # ------ Creation of a dictionary that will contain the pythons modules ----- #
+        self.ExternalPythonModules = dict()
+        self.ExternalPythonModules["Angle Planes"] = slicer.modules.AnglePlanesWidget
+        self.ExternalPythonModules["Easy Clip"] = slicer.modules.EasyClipWidget
+        self.ExternalPythonModules["Mesh Statistics"] = slicer.modules.MeshStatisticsWidget
+        self.ExternalPythonModules["Pick and Paint"] = slicer.modules.PickAndPaintWidget
+        self.ExternalPythonModules["Q3DC"] = slicer.modules.Q3DCWidget
+        self.ExternalPythonModules["Surface Registration"] = slicer.modules.SurfaceRegistrationWidget
+
+        # ------ Creation of a dictionary that will contain the CLI modules ----- #
+        self.ExternalCLIModules = dict()
+        self.ExternalCLIModules["Model to Model Distance"] = slicer.modules.modeltomodeldistance
+        self.ExternalCLIModules["Shape Population Viewer"] = slicer.modules.launcher
+
         # ------ Creation of a dictionary that will contain the widgets of all the modules ----- #
         self.ExternalModulesWidgets = dict()
-        self.ExternalModulesWidgets["Angle Planes"] = slicer.modules.AnglePlanesWidget.widget
-        self.ExternalModulesWidgets["Easy Clip"] = slicer.modules.EasyClipWidget.widget
-        self.ExternalModulesWidgets["Mesh Statistics"] = slicer.modules.MeshStatisticsWidget.widget
-        self.ExternalModulesWidgets["Model to Model Distance"] = slicer.modules.modeltomodeldistance.widgetRepresentation()
-        self.ExternalModulesWidgets["Pick and Paint"] = slicer.modules.PickAndPaintWidget.widget
-        self.ExternalModulesWidgets["Q3DC"] = slicer.modules.Q3DCWidget.widget
-        self.ExternalModulesWidgets["Shape Population Viewer"] = slicer.modules.launcher.widgetRepresentation()
-        self.ExternalModulesWidgets["Surface Registration"] = slicer.modules.SurfaceRegistrationWidget.widget
+        for key, value in self.ExternalPythonModules.iteritems():
+            self.ExternalModulesWidgets[key] = value.widget
+        for key, value in self.ExternalCLIModules.iteritems():
+            self.ExternalModulesWidgets[key] = value.widgetRepresentation()
 
         # ------ Initialisation of variables to know which module is currently used ----- #
         self.curentQuantificationWidget = dict()
@@ -129,36 +139,17 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         # all the external modules to avoid redundancies
         # and make this module as clear and simple as possible
 
-        # AnglePlanes
-        slicer.modules.AnglePlanesWidget.SceneCollapsibleButton.hide()
-        slicer.modules.AnglePlanesWidget.inputModelLabel.hide()
-        slicer.modules.AnglePlanesWidget.inputLandmarksLabel.hide()
-        slicer.modules.AnglePlanesWidget.inputModelSelector.hide()
-        slicer.modules.AnglePlanesWidget.inputLandmarksSelector.hide()
-        slicer.modules.AnglePlanesWidget.loadLandmarksOnSurfacCheckBox.hide()
-
-        #EasyClip
-        slicer.modules.EasyClipWidget.SceneCollapsibleButton.hide()
-
-        #MeshStatistics
-
-        #PickAndPaint
-        slicer.modules.PickAndPaintWidget.inputModelLabel.hide()
-        slicer.modules.PickAndPaintWidget.inputLandmarksLabel.hide()
-        slicer.modules.PickAndPaintWidget.inputModelSelector.hide()
-        slicer.modules.PickAndPaintWidget.inputLandmarksSelector.hide()
-        slicer.modules.PickAndPaintWidget.loadLandmarksOnSurfacCheckBox.hide()
-
-        #Q3DC
-        slicer.modules.Q3DCWidget.SceneCollapsibleButton.hide()
-        slicer.modules.Q3DCWidget.inputModelLabel.hide()
-        slicer.modules.Q3DCWidget.inputLandmarksLabel.hide()
-        slicer.modules.Q3DCWidget.inputModelSelector.hide()
-        slicer.modules.Q3DCWidget.inputLandmarksSelector.hide()
-        slicer.modules.Q3DCWidget.loadLandmarksOnSurfacCheckBox.hide()
-
-        #Surfaceregostration
-        slicer.modules.SurfaceRegistrationWidget.InputCollapsibleButton.hide()
+        for key, value in self.ExternalPythonModules.iteritems():
+            if hasattr(value, 'SceneCollapsibleButton'):
+                value.SceneCollapsibleButton.hide()
+            if hasattr(value, 'inputModelLabel'):
+                value.inputModelLabel.hide()
+                value.inputLandmarksLabel.hide()
+                value.inputModelSelector.hide()
+                value.inputLandmarksSelector.hide()
+                value.loadLandmarksOnSurfacCheckBox.hide()
+            elif hasattr(value, 'InputCollapsibleButton'):
+                value.InputCollapsibleButton.hide()
 
         # --------------------------------------------- #
         # ---------------- Connections ---------------- #
