@@ -74,6 +74,29 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.autoChangeLayout = self.logic.get("autoChangeLayout")
         self.computeBox = self.logic.get("computeBox")
 
+        # ------ Step Group Box ----- #
+        self.Model1RadioButton = self.logic.get("Model1RadioButton")
+        self.Model1RadioButton.hide()
+        self.Model2RadioButton = self.logic.get("Model2RadioButton")
+        self.Model2RadioButton.hide()
+        self.PreviousStepPushButton = self.logic.get("PreviousStepPushButton")
+        self.NextStepPushButton = self.logic.get("NextStepPushButton")
+
+        # ------ Data selection Collapsible Button ----- #
+        self.DataSelectionCollapsibleButton = self.logic.get("DataSelectionCollapsibleButton")
+        self.SingleModelRadioButton = self.logic.get("SingleModelRadioButton")
+        self.TwoModelsRadioButton = self.logic.get("TwoModelsRadioButton")
+        self.Model1groupBox = self.logic.get("Model1groupBox")
+        self.Model1MRMLNodeComboBox = self.logic.get("Model1MRMLNodeComboBox")
+        self.Model1MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
+        self.FidList1MRMLNodeComboBox = self.logic.get("FidList1MRMLNodeComboBox")
+        self.FidList1MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
+        self.Model2groupBox = self.logic.get("Model2groupBox")
+        self.Model2MRMLNodeComboBox = self.logic.get("Model2MRMLNodeComboBox")
+        self.Model2MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
+        self.FidList2MRMLNodeComboBox = self.logic.get("FidList2MRMLNodeComboBox")
+        self.FidList2MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
+
         # ------ Preprocessing Collapsible Button ----- #
         self.PreprocessingCollapsibleButton = self.logic.get("PreprocessingCollapsibleButton")
         self.PreprocessingLayout = self.logic.get("PreprocessingLayout")
@@ -157,6 +180,10 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
 
         # ------ Scene Collapsible Button ----- #
 
+        # ------ Data selection Collapsible Button ----- #
+        self.SingleModelRadioButton.connect('clicked()', lambda: self.onNumberOfModelForMeasureChange(True))
+        self.TwoModelsRadioButton.connect('clicked()', lambda: self.onNumberOfModelForMeasureChange(False))
+
         # ------ Preprocessing Collapsible Button ----- #
         self.PreprocessingChoiceComboBox.connect('currentIndexChanged(QString)', self.onPreprocessingSelectionChanged)
 
@@ -188,18 +215,24 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.QuantificationChoiceComboBox.setCurrentIndex(0)
         self.AnalysisChoiceComboBox.setCurrentIndex(0)
 
+    # ---------- switching of External Module ----------- #
+    # Switching of preprocessing module
     def onPreprocessingSelectionChanged(self, newModule):
         print "--- onPreprocessingSelectionChanged --- "
         self.moduleChangement(self.PreprocessingLayout, newModule)
 
+    # Switching of quantification module
     def onQuantificationSelectionChanged(self, newModule):
         print "--- onQuantificationSelectionChanged --- "
         self.moduleChangement(self.QuantificationLayout, newModule)
 
+    # Switching of analysis module
     def onAnalysisSelectionChanged(self, newModule):
         print "--- onAnalysisSelectionChanged --- "
         self.moduleChangement(self.AnalysisLayout, newModule)
 
+    # The goal of this function is to hide the current external module of
+    # a tab (preprocessing, quantification...) and dislay a new one.
     def moduleChangement(self, layout, newModule):
         if self.curentQuantificationWidget[layout]:
             layout.removeWidget(self.curentQuantificationWidget[layout])
@@ -210,6 +243,21 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.curentQuantificationWidget[layout] = self.ExternalModulesWidgets[newModule]
         layout.addWidget(self.curentQuantificationWidget[layout])
         self.curentQuantificationWidget[layout].show()
+
+    # ---------- Data Selection ---------- #
+
+    def onNumberOfModelForMeasureChange(self, isSingleModelMeasurement):
+        if isSingleModelMeasurement:
+            self.Model2groupBox.setEnabled(False)
+            self.Model1RadioButton.hide()
+            self.Model2RadioButton.hide()
+        else:
+            self.Model2groupBox.setEnabled(True)
+            self.Model2MRMLNodeComboBox.setEnabled(True)
+            self.FidList2MRMLNodeComboBox.setEnabled(True)
+            self.Model1RadioButton.show()
+            self.Model2RadioButton.show()
+
 
 
 # ******************************************************************* #
