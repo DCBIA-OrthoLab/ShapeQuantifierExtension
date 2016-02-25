@@ -2,7 +2,34 @@ from __main__ import vtk, qt, ctk, slicer
 import os
 import logging
 
-# *************************************************  ********** #
+# ********************************************** #
+# **************** Useful class **************** #
+# ********************************************** #
+
+class ExternalModuleTab():
+    def __init__(self):
+        self.collapsibleButton = None
+        self.layout = None
+        self.choiceComboBox = None
+        self.currentModule = None
+
+    def clean(self):
+        if self.currentModule:
+                self.layout.removeWidget(self.currentModule)
+                self.currentModule.hide()
+                self.choiceComboBox.setCurrentIndex(0)
+                self.currentModule = None
+
+    def setWidget(self, widget):
+        self.currentModule = widget
+        self.layout.addWidget(widget)
+        widget.show()
+
+    def belongToThisTab(self, moduleName):
+        modulesNamesOfThisTab = [self.choiceComboBox.itemText(i) for i in range(self.choiceComboBox.count)]
+        return moduleName in modulesNamesOfThisTab
+
+# ************************************************************* #
 # **************** Longitudinal Quantification **************** #
 # ************************************************************* #
 
@@ -101,20 +128,24 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.FidList2MRMLNodeComboBox = self.logic.get("FidList2MRMLNodeComboBox")
         self.FidList2MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
 
+        self.ExternalModuleTabDict = dict()
         # ------ Preprocessing Collapsible Button ----- #
-        self.PreprocessingCollapsibleButton = self.logic.get("PreprocessingCollapsibleButton")
-        self.PreprocessingLayout = self.logic.get("PreprocessingLayout")
-        self.PreprocessingChoiceComboBox = self.logic.get("PreprocessingChoiceComboBox")
+        self.ExternalModuleTabDict["Preprocessing"] = ExternalModuleTab()
+        self.ExternalModuleTabDict["Preprocessing"].collapsibleButton = self.logic.get("PreprocessingCollapsibleButton")
+        self.ExternalModuleTabDict["Preprocessing"].layout = self.logic.get("PreprocessingLayout")
+        self.ExternalModuleTabDict["Preprocessing"].choiceComboBox = self.logic.get("PreprocessingChoiceComboBox")
 
         # ------ Quantification Collapsible Button ----- #
-        self.QuantificationCollapsibleButton = self.logic.get("QuantificationCollapsibleButton")
-        self.QuantificationLayout = self.logic.get("QuantificationLayout")
-        self.QuantificationChoiceComboBox = self.logic.get("QuantificationChoiceComboBox")
+        self.ExternalModuleTabDict["Quantification"] = ExternalModuleTab()
+        self.ExternalModuleTabDict["Quantification"].collapsibleButton = self.logic.get("QuantificationCollapsibleButton")
+        self.ExternalModuleTabDict["Quantification"].layout = self.logic.get("QuantificationLayout")
+        self.ExternalModuleTabDict["Quantification"].choiceComboBox = self.logic.get("QuantificationChoiceComboBox")
 
         # ------ Analysis Collapsible Button ----- #
-        self.AnalysisCollapsibleButton = self.logic.get("AnalysisCollapsibleButton")
-        self.AnalysisLayout = self.logic.get("AnalysisLayout")
-        self.AnalysisChoiceComboBox = self.logic.get("AnalysisChoiceComboBox")
+        self.ExternalModuleTabDict["Analysis"] = ExternalModuleTab()
+        self.ExternalModuleTabDict["Analysis"].collapsibleButton = self.logic.get("AnalysisCollapsibleButton")
+        self.ExternalModuleTabDict["Analysis"].layout = self.logic.get("AnalysisLayout")
+        self.ExternalModuleTabDict["Analysis"].choiceComboBox = self.logic.get("AnalysisChoiceComboBox")
 
         # ------------------------------------------------------------------------------ #
         # ---------------- Setup and initialisation of global variables ---------------- #
@@ -155,12 +186,6 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         for key, value in self.ExternalCLIModules.iteritems():
             self.ExternalModulesWidgets[key] = value.widgetRepresentation()
 
-        # ------ Initialisation of variables to know which module is currently used ----- #
-        self.curentQuantificationWidget = dict()
-        self.curentQuantificationWidget[self.PreprocessingLayout] = None
-        self.curentQuantificationWidget[self.QuantificationLayout] = None
-        self.curentQuantificationWidget[self.AnalysisLayout] = None
-
         # ------ Setup of the external modules ------ #
         # Hiding of the scene tabs and the input tabs in
         # all the external modules to avoid redundancies
@@ -193,13 +218,16 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.FidList2MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputFidList2)
 
         # ------ Preprocessing Collapsible Button ----- #
-        self.PreprocessingChoiceComboBox.connect('currentIndexChanged(QString)', self.onPreprocessingSelectionChanged)
+        self.ExternalModuleTabDict["Preprocessing"].choiceComboBox.connect('currentIndexChanged(QString)',
+                                                                           self.ExternalModuleChangement)
 
         # ------ Quantification Collapsible Button ----- #
-        self.QuantificationChoiceComboBox.connect('currentIndexChanged(QString)', self.onQuantificationSelectionChanged)
+        self.ExternalModuleTabDict["Quantification"].choiceComboBox.connect('currentIndexChanged(QString)',
+                                                                            self.ExternalModuleChangement)
 
         # ------ Analysis Collapsible Button ----- #
-        self.AnalysisChoiceComboBox.connect('currentIndexChanged(QString)', self.onAnalysisSelectionChanged)
+        self.ExternalModuleTabDict["Analysis"].choiceComboBox.connect('currentIndexChanged(QString)',
+                                                                      self.ExternalModuleChangement)
 
         # ------ Closing of the scene -----#
         slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, self.onCloseScene)
@@ -219,38 +247,22 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
     # function called each time that the scene is closed (if Longitudinal Quantification has been initialized)
     def onCloseScene(self, obj, event):
         print "---- Close Longitudinal Quantification ---- "
-        self.PreprocessingChoiceComboBox.setCurrentIndex(0)
-        self.QuantificationChoiceComboBox.setCurrentIndex(0)
-        self.AnalysisChoiceComboBox.setCurrentIndex(0)
+        for ExtModTab in self.ExternalModuleTabDict.itervalues():
+            ExtModTab.choiceComboBox.setCurrentIndex(0)
 
     # ---------- switching of External Module ----------- #
-    # Switching of preprocessing module
-    def onPreprocessingSelectionChanged(self, newModule):
-        print "--- onPreprocessingSelectionChanged --- "
-        self.moduleChangement(self.PreprocessingLayout, newModule)
-
-    # Switching of quantification module
-    def onQuantificationSelectionChanged(self, newModule):
-        print "--- onQuantificationSelectionChanged --- "
-        self.moduleChangement(self.QuantificationLayout, newModule)
-
-    # Switching of analysis module
-    def onAnalysisSelectionChanged(self, newModule):
-        print "--- onAnalysisSelectionChanged --- "
-        self.moduleChangement(self.AnalysisLayout, newModule)
-
-    # The goal of this function is to hide the current external module of
-    # a tab (preprocessing, quantification...) and dislay a new one.
-    def moduleChangement(self, layout, newModule):
-        if self.curentQuantificationWidget[layout]:
-            layout.removeWidget(self.curentQuantificationWidget[layout])
-            self.curentQuantificationWidget[layout].hide()
-        if newModule == "None":
-            self.curentQuantificationWidget[layout] = None
-            return
-        self.curentQuantificationWidget[layout] = self.ExternalModulesWidgets[newModule]
-        layout.addWidget(self.curentQuantificationWidget[layout])
-        self.curentQuantificationWidget[layout].show()
+    # This function hide all the external widgets if they are displayed
+    # And show the new external module given in argument
+    def ExternalModuleChangement(self, newModule):
+        for ExtModTab in self.ExternalModuleTabDict.itervalues():
+            ExtModTab.choiceComboBox.blockSignals(True)
+            ExtModTab.clean()
+            if newModule is "None":
+                ExtModTab.choiceComboBox.blockSignals(False)
+                continue
+            if ExtModTab.belongToThisTab(newModule):
+                ExtModTab.setWidget(self.ExternalModulesWidgets[newModule])
+            ExtModTab.choiceComboBox.blockSignals(False)
 
     # ---------- Data Selection ---------- #
     # This function show/enable or hide/disable the different inputs depending
