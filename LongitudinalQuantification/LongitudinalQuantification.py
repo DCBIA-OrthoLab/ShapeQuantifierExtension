@@ -81,11 +81,15 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.Model2RadioButton.hide()
         self.PreviousStepPushButton = self.logic.get("PreviousStepPushButton")
         self.NextStepPushButton = self.logic.get("NextStepPushButton")
+        self.logic.get("verticalLayout_4").setAlignment(0x84)
+        self.logic.get("verticalLayout_5").setAlignment(0x84)
 
         # ------ Data selection Collapsible Button ----- #
         self.DataSelectionCollapsibleButton = self.logic.get("DataSelectionCollapsibleButton")
         self.SingleModelRadioButton = self.logic.get("SingleModelRadioButton")
         self.TwoModelsRadioButton = self.logic.get("TwoModelsRadioButton")
+        self.logic.get("verticalLayout_6").setAlignment(0x84)
+        self.logic.get("verticalLayout_7").setAlignment(0x84)
         self.Model1groupBox = self.logic.get("Model1groupBox")
         self.Model1MRMLNodeComboBox = self.logic.get("Model1MRMLNodeComboBox")
         self.Model1MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
@@ -183,6 +187,10 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         # ------ Data selection Collapsible Button ----- #
         self.SingleModelRadioButton.connect('clicked()', lambda: self.onNumberOfModelForMeasureChange(True))
         self.TwoModelsRadioButton.connect('clicked()', lambda: self.onNumberOfModelForMeasureChange(False))
+        self.Model1MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputModel1)
+        self.FidList1MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputFidList1)
+        self.Model2MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputModel2)
+        self.FidList2MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputFidList2)
 
         # ------ Preprocessing Collapsible Button ----- #
         self.PreprocessingChoiceComboBox.connect('currentIndexChanged(QString)', self.onPreprocessingSelectionChanged)
@@ -245,7 +253,8 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.curentQuantificationWidget[layout].show()
 
     # ---------- Data Selection ---------- #
-
+    # This function show/enable or hide/disable the different inputs depending
+    # if the user check measurement on a single model or between two models
     def onNumberOfModelForMeasureChange(self, isSingleModelMeasurement):
         if isSingleModelMeasurement:
             self.Model2groupBox.setEnabled(False)
@@ -257,6 +266,38 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
             self.FidList2MRMLNodeComboBox.setEnabled(True)
             self.Model1RadioButton.show()
             self.Model2RadioButton.show()
+
+    # This function propagate the model1 selected in the input tab to all the external modules
+    def propagateInputModel1(self, newModel):
+        for key, value in self.ExternalPythonModules.iteritems():
+            if hasattr(value, 'inputModelSelector'):
+                value.inputModelSelector.setCurrentNode(newModel)
+            elif hasattr(value, 'inputFixedModelSelector'):
+                value.inputFixedModelSelector.setCurrentNode(newModel)
+
+    # This function propagate the Fiducial List 1 selected in the input tab to all the external modules
+    def propagateInputFidList1(self, newModel):
+        for key, value in self.ExternalPythonModules.iteritems():
+            if hasattr(value, 'inputLandmarksSelector'):
+                value.inputLandmarksSelector.setCurrentNode(newModel)
+            elif hasattr(value, 'inputMovingModelSelector'):
+                value.inputMovingModelSelector.setCurrentNode(newModel)
+
+    # This function propagate the model2 selected in the input tab to all the external modules
+    def propagateInputModel2(self, newModel):
+        for key, value in self.ExternalPythonModules.iteritems():
+            if hasattr(value, 'inputModelSelector'):
+                value.inputModelSelector.setCurrentNode(newModel)
+            elif hasattr(value, 'inputMovingModelSelector'):
+                value.inputMovingModelSelector.setCurrentNode(newModel)
+
+    # This function propagate the Fiducial List 2 selected in the input tab to all the external modules
+    def propagateInputFidList2(self, newModel):
+        for key, value in self.ExternalPythonModules.iteritems():
+            if hasattr(value, 'inputLandmarksSelector'):
+                value.inputLandmarksSelector.setCurrentNode(newModel)
+            elif hasattr(value, 'inputMovingLandmarksSelector'):
+                value.inputMovingLandmarksSelector.setCurrentNode(newModel)
 
 
 
