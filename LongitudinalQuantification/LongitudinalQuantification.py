@@ -208,8 +208,12 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         # --------------------------------------------- #
 
         # ------ Scene Collapsible Button ----- #
+        self.SceneCollapsibleButton.\
+            connect('clicked()', lambda: self.onSelectedCollapsibleButtonChanged(self.SceneCollapsibleButton))
 
         # ------ Data selection Collapsible Button ----- #
+        self.DataSelectionCollapsibleButton.\
+            connect('clicked()', lambda: self.onSelectedCollapsibleButtonChanged(self.DataSelectionCollapsibleButton))
         self.SingleModelRadioButton.connect('clicked()', lambda: self.onNumberOfModelForMeasureChange(True))
         self.TwoModelsRadioButton.connect('clicked()', lambda: self.onNumberOfModelForMeasureChange(False))
         self.Model1MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputModel1)
@@ -217,17 +221,15 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.Model2MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputModel2)
         self.FidList2MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputFidList2)
 
-        # ------ Preprocessing Collapsible Button ----- #
-        self.ExternalModuleTabDict["Preprocessing"].choiceComboBox.connect('currentIndexChanged(QString)',
-                                                                           self.ExternalModuleChangement)
-
-        # ------ Quantification Collapsible Button ----- #
-        self.ExternalModuleTabDict["Quantification"].choiceComboBox.connect('currentIndexChanged(QString)',
-                                                                            self.ExternalModuleChangement)
-
-        # ------ Analysis Collapsible Button ----- #
-        self.ExternalModuleTabDict["Analysis"].choiceComboBox.connect('currentIndexChanged(QString)',
-                                                                      self.ExternalModuleChangement)
+        # ------ Eternal Modules Selections Collapsible Buttons ----- #
+        for key, ExternalModule in self.ExternalModuleTabDict.iteritems():
+            ExternalModule.choiceComboBox.connect('currentIndexChanged(QString)',self.ExternalModuleChangement)
+        self.ExternalModuleTabDict["Preprocessing"].collapsibleButton.connect(
+                'clicked()', lambda: self.onSelectedCollapsibleButtonChanged(self.ExternalModuleTabDict["Preprocessing"].collapsibleButton))
+        self.ExternalModuleTabDict["Quantification"].collapsibleButton.connect(
+                'clicked()', lambda: self.onSelectedCollapsibleButtonChanged(self.ExternalModuleTabDict["Quantification"].collapsibleButton))
+        self.ExternalModuleTabDict["Analysis"].collapsibleButton.connect(
+                'clicked()', lambda: self.onSelectedCollapsibleButtonChanged(self.ExternalModuleTabDict["Analysis"].collapsibleButton))
 
         # ------ Closing of the scene -----#
         slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, self.onCloseScene)
@@ -249,6 +251,17 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         print "---- Close Longitudinal Quantification ---- "
         for ExtModTab in self.ExternalModuleTabDict.itervalues():
             ExtModTab.choiceComboBox.setCurrentIndex(0)
+
+    # ---------- switching of Tab ----------- #
+    # Only one tab can be display at the same time, so when one tab is opened
+    # all the other tabs are closed by this function
+    def onSelectedCollapsibleButtonChanged(self, selectedCollapsibleButton):
+        self.SceneCollapsibleButton.setChecked(False)
+        self.DataSelectionCollapsibleButton.setChecked(False)
+        for ExternalModule in self.ExternalModuleTabDict.itervalues():
+            ExternalModule.collapsibleButton.setChecked(False)
+        print selectedCollapsibleButton
+        selectedCollapsibleButton.setChecked(True)
 
     # ---------- switching of External Module ----------- #
     # This function hide all the external widgets if they are displayed
