@@ -12,22 +12,31 @@ class ExternalModuleTab():
         self.layout = None
         self.choiceComboBox = None
         self.currentModule = None
+        self.currentComboboxIndex = None
 
-    def clean(self):
+    def hideCurrentModule(self):
         if self.currentModule:
-                self.layout.removeWidget(self.currentModule)
-                self.currentModule.hide()
-                self.choiceComboBox.setCurrentIndex(0)
-                self.currentModule = None
+            self.layout.removeWidget(self.currentModule)
+            self.currentModule.hide()
+            self.choiceComboBox.setCurrentIndex(0)
 
-    def setWidget(self, widget):
+    def deleteCurrentModule(self):
+        self.hideCurrentModule()
+        self.currentModule = None
+        self.currentComboboxIndex = 0
+
+    def showCurrentModule(self):
+        if self.currentModule:
+            print self.currentModule
+            print self.currentComboboxIndex
+            self.layout.addWidget(self.currentModule)
+            self.currentModule.show()
+            self.choiceComboBox.setCurrentIndex(self.currentComboboxIndex)
+
+    def setCurrentModule(self, widget, index):
         self.currentModule = widget
-        self.layout.addWidget(widget)
-        widget.show()
-
-    def belongToThisTab(self, moduleName):
-        modulesNamesOfThisTab = [self.choiceComboBox.itemText(i) for i in range(self.choiceComboBox.count)]
-        return moduleName in modulesNamesOfThisTab
+        self.currentComboboxIndex = index
+        self.showCurrentModule()
 
 # ************************************************************* #
 # **************** Longitudinal Quantification **************** #
