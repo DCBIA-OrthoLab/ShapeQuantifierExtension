@@ -138,23 +138,13 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.FidList2MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
 
         self.ExternalModuleTabDict = dict()
-        # ------ Preprocessing Collapsible Button ----- #
-        self.ExternalModuleTabDict["Preprocessing"] = ExternalModuleTab()
-        self.ExternalModuleTabDict["Preprocessing"].collapsibleButton = self.logic.get("PreprocessingCollapsibleButton")
-        self.ExternalModuleTabDict["Preprocessing"].layout = self.logic.get("PreprocessingLayout")
-        self.ExternalModuleTabDict["Preprocessing"].choiceComboBox = self.logic.get("PreprocessingChoiceComboBox")
-
-        # ------ Quantification Collapsible Button ----- #
-        self.ExternalModuleTabDict["Quantification"] = ExternalModuleTab()
-        self.ExternalModuleTabDict["Quantification"].collapsibleButton = self.logic.get("QuantificationCollapsibleButton")
-        self.ExternalModuleTabDict["Quantification"].layout = self.logic.get("QuantificationLayout")
-        self.ExternalModuleTabDict["Quantification"].choiceComboBox = self.logic.get("QuantificationChoiceComboBox")
-
-        # ------ Analysis Collapsible Button ----- #
-        self.ExternalModuleTabDict["Analysis"] = ExternalModuleTab()
-        self.ExternalModuleTabDict["Analysis"].collapsibleButton = self.logic.get("AnalysisCollapsibleButton")
-        self.ExternalModuleTabDict["Analysis"].layout = self.logic.get("AnalysisLayout")
-        self.ExternalModuleTabDict["Analysis"].choiceComboBox = self.logic.get("AnalysisChoiceComboBox")
+        # ------ Eternal Modules Selections ----- #
+        listOfTab = ["Preprocessing","Quantification","Analysis"]
+        for tab in listOfTab:
+            self.ExternalModuleTabDict[tab] = ExternalModuleTab()
+            self.ExternalModuleTabDict[tab].collapsibleButton = self.logic.get(tab + "CollapsibleButton")
+            self.ExternalModuleTabDict[tab].layout = self.logic.get(tab + "Layout")
+            self.ExternalModuleTabDict[tab].choiceComboBox = self.logic.get(tab + "ChoiceComboBox")
 
         # ------------------------------------------------------------------------------ #
         # ---------------- Setup and initialisation of global variables ---------------- #
@@ -230,7 +220,7 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.Model2MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputModel2)
         self.FidList2MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputFidList2)
 
-        # ------ Eternal Modules Selections Collapsible Buttons ----- #
+        # ------ Eternal Modules Selections ----- #
         for key, ExternalModule in self.ExternalModuleTabDict.iteritems():
             ExternalModule.collapsibleButton.connect('clicked()',
                                                      lambda currentCollapsibleButton = ExternalModule.collapsibleButton:
