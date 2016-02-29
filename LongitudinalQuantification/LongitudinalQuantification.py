@@ -264,25 +264,32 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
     # Only one tab can be display at the same time, so when one tab is opened
     # all the other tabs are closed by this function
     def onSelectedCollapsibleButtonChanged(self, selectedCollapsibleButton):
+        print "--- on Selected Collapsible Button Changed ---"
         self.SceneCollapsibleButton.setChecked(False)
         self.DataSelectionCollapsibleButton.setChecked(False)
-        for ExternalModule in self.ExternalModuleTabDict.itervalues():
-            ExternalModule.collapsibleButton.setChecked(False)
-        print selectedCollapsibleButton
+        for ExtModTab in self.ExternalModuleTabDict.itervalues():
+            ExtModTab.choiceComboBox.blockSignals(True)
+            if ExtModTab.collapsibleButton is selectedCollapsibleButton:
+                ExtModTab.showCurrentModule()
+            else:
+                ExtModTab.collapsibleButton.setChecked(False)
+                ExtModTab.hideCurrentModule()
+            ExtModTab.choiceComboBox.blockSignals(False)
         selectedCollapsibleButton.setChecked(True)
 
     # ---------- switching of External Module ----------- #
     # This function hide all the external widgets if they are displayed
     # And show the new external module given in argument
-    def ExternalModuleChangement(self, newModule):
+    def onExternalModuleChangement(self, newModule, currentCombobox):
+        print "--- on External Module Changement ---"
         for ExtModTab in self.ExternalModuleTabDict.itervalues():
             ExtModTab.choiceComboBox.blockSignals(True)
-            ExtModTab.clean()
-            if newModule is "None":
-                ExtModTab.choiceComboBox.blockSignals(False)
-                continue
-            if ExtModTab.belongToThisTab(newModule):
-                ExtModTab.setWidget(self.ExternalModulesWidgets[newModule])
+            if ExtModTab.choiceComboBox is currentCombobox:
+                ExtModTab.deleteCurrentModule()
+                if newModule != "None":
+                    ExtModTab.setCurrentModule(self.ExternalModulesWidgets[newModule], currentCombobox.currentIndex)
+            else:
+                ExtModTab.hideCurrentModule()
             ExtModTab.choiceComboBox.blockSignals(False)
 
     # ---------- Data Selection ---------- #
