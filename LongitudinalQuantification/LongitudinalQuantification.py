@@ -232,13 +232,12 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
 
         # ------ Eternal Modules Selections Collapsible Buttons ----- #
         for key, ExternalModule in self.ExternalModuleTabDict.iteritems():
-            ExternalModule.choiceComboBox.connect('currentIndexChanged(QString)',self.ExternalModuleChangement)
-        self.ExternalModuleTabDict["Preprocessing"].collapsibleButton.connect(
-                'clicked()', lambda: self.onSelectedCollapsibleButtonChanged(self.ExternalModuleTabDict["Preprocessing"].collapsibleButton))
-        self.ExternalModuleTabDict["Quantification"].collapsibleButton.connect(
-                'clicked()', lambda: self.onSelectedCollapsibleButtonChanged(self.ExternalModuleTabDict["Quantification"].collapsibleButton))
-        self.ExternalModuleTabDict["Analysis"].collapsibleButton.connect(
-                'clicked()', lambda: self.onSelectedCollapsibleButtonChanged(self.ExternalModuleTabDict["Analysis"].collapsibleButton))
+            ExternalModule.collapsibleButton.connect('clicked()',
+                                                     lambda currentCollapsibleButton = ExternalModule.collapsibleButton:
+                                                     self.onSelectedCollapsibleButtonChanged(currentCollapsibleButton))
+            ExternalModule.choiceComboBox.connect('currentIndexChanged(QString)',
+                                                  lambda newModule, currentCombobox = ExternalModule.choiceComboBox:
+                                                  self.onExternalModuleChangement(newModule, currentCombobox))
 
         # ------ Closing of the scene -----#
         slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, self.onCloseScene)
