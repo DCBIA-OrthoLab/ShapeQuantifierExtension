@@ -104,11 +104,16 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.SceneCollapsibleButton = self.logic.get("SceneCollapsibleButton")
         treeView = self.logic.get("treeView")
         treeView.setMRMLScene(slicer.app.mrmlScene())
-        treeView.sceneModel().setHorizontalHeaderLabels(["Models"])
         treeView.sortFilterProxyModel().nodeTypes = ['vtkMRMLModelNode','vtkMRMLMarkupsFiducialNode']
-        treeView.header().setVisible(False)
-        self.autoChangeLayout = self.logic.get("autoChangeLayout")
-        self.computeBox = self.logic.get("computeBox")
+        sceneModel = treeView.sceneModel()
+        sceneModel.colorColumn = 1
+        sceneModel.opacityColumn = 2
+        treeViewHeader = treeView.header()
+        treeViewHeader.setVisible(False)
+        treeViewHeader.setStretchLastSection(False)
+        treeViewHeader.setResizeMode(sceneModel.nameColumn,qt.QHeaderView.Stretch)
+        treeViewHeader.setResizeMode(sceneModel.colorColumn,qt.QHeaderView.ResizeToContents)
+        treeViewHeader.setResizeMode(sceneModel.opacityColumn,qt.QHeaderView.ResizeToContents)
 
         # ------ Step Group Box ----- #
         self.Model1RadioButton = self.logic.get("Model1RadioButton")
