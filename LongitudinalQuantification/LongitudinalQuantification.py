@@ -16,8 +16,8 @@ class ExternalModuleTab():
 
     def hideCurrentModule(self):
         if self.currentModule:
-            self.layout.removeWidget(self.currentModule)
-            self.currentModule.hide()
+            self.layout.removeWidget(self.currentModule.widget)
+            self.currentModule.widget.hide()
             self.choiceComboBox.setCurrentIndex(0)
 
     def deleteCurrentModule(self):
@@ -27,14 +27,12 @@ class ExternalModuleTab():
 
     def showCurrentModule(self):
         if self.currentModule:
-            print self.currentModule
-            print self.currentComboboxIndex
-            self.layout.addWidget(self.currentModule)
-            self.currentModule.show()
+            self.layout.addWidget(self.currentModule.widget)
+            self.currentModule.widget.show()
             self.choiceComboBox.setCurrentIndex(self.currentComboboxIndex)
 
-    def setCurrentModule(self, widget, index):
-        self.currentModule = widget
+    def setCurrentModule(self, module, index):
+        self.currentModule = module
         self.currentComboboxIndex = index
         self.showCurrentModule()
 
@@ -183,12 +181,8 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.ExternalCLIModules["Model to Model Distance"] = slicer.modules.modeltomodeldistance
         self.ExternalCLIModules["Shape Population Viewer"] = slicer.modules.launcher
 
-        # ------ Creation of a dictionary that will contain the widgets of all the modules ----- #
-        self.ExternalModulesWidgets = dict()
-        for key, value in self.ExternalPythonModules.iteritems():
-            self.ExternalModulesWidgets[key] = value.widget
-        for key, value in self.ExternalCLIModules.iteritems():
-            self.ExternalModulesWidgets[key] = value.widgetRepresentation()
+        # ------ Creation of a dictionary that will contain all the modules ----- #
+        self.ExternalModulesDict = dict(self.ExternalPythonModules, **self.ExternalCLIModules)
 
         # ------ Setup of the external modules ------ #
         # Hiding of the scene tabs and the input tabs in
@@ -215,15 +209,19 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.SceneCollapsibleButton.\
             connect('clicked()', lambda: self.onSelectedCollapsibleButtonChanged(self.SceneCollapsibleButton))
 
+        # ------ Step Group Box ----- #
+        self.Model1RadioButton.connect('clicked()', self.propagationOfInputDataToExternalModules)
+        self.Model2RadioButton.connect('clicked()', self.propagationOfInputDataToExternalModules)
+
         # ------ Data selection Collapsible Button ----- #
         self.DataSelectionCollapsibleButton.\
             connect('clicked()', lambda: self.onSelectedCollapsibleButtonChanged(self.DataSelectionCollapsibleButton))
         self.SingleModelRadioButton.connect('clicked()', lambda: self.onNumberOfModelForMeasureChange(True))
         self.TwoModelsRadioButton.connect('clicked()', lambda: self.onNumberOfModelForMeasureChange(False))
-        self.Model1MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputModel1)
-        self.FidList1MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputFidList1)
-        self.Model2MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputModel2)
-        self.FidList2MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagateInputFidList2)
+        self.Model1MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagationOfInputDataToExternalModules)
+        self.FidList1MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagationOfInputDataToExternalModules)
+        self.Model2MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagationOfInputDataToExternalModules)
+        self.FidList2MRMLNodeComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.propagationOfInputDataToExternalModules)
 
         # ------ Eternal Modules Selections ----- #
         for key, ExternalModule in self.ExternalModuleTabDict.iteritems():
@@ -271,6 +269,7 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
                 ExtModTab.hideCurrentModule()
             ExtModTab.choiceComboBox.blockSignals(False)
         selectedCollapsibleButton.setChecked(True)
+        self.propagationOfInputDataToExternalModules()
 
     # ---------- switching of External Module ----------- #
     # This function hide all the external widgets if they are displayed
@@ -282,10 +281,11 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
             if ExtModTab.choiceComboBox is currentCombobox:
                 ExtModTab.deleteCurrentModule()
                 if newModule != "None":
-                    ExtModTab.setCurrentModule(self.ExternalModulesWidgets[newModule], currentCombobox.currentIndex)
+                    ExtModTab.setCurrentModule(self.ExternalModulesDict[newModule], currentCombobox.currentIndex)
             else:
                 ExtModTab.hideCurrentModule()
             ExtModTab.choiceComboBox.blockSignals(False)
+        self.propagationOfInputDataToExternalModules()
 
     # ---------- Data Selection ---------- #
     # This function show/enable or hide/disable the different inputs depending
@@ -301,40 +301,40 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
             self.FidList2MRMLNodeComboBox.setEnabled(True)
             self.Model1RadioButton.show()
             self.Model2RadioButton.show()
+        self.propagationOfInputDataToExternalModules()
 
-    # This function propagate the model1 selected in the input tab to all the external modules
-    def propagateInputModel1(self, newModel):
-        for key, value in self.ExternalPythonModules.iteritems():
-            if hasattr(value, 'inputModelSelector'):
-                value.inputModelSelector.setCurrentNode(newModel)
-            elif hasattr(value, 'inputFixedModelSelector'):
-                value.inputFixedModelSelector.setCurrentNode(newModel)
-
-    # This function propagate the Fiducial List 1 selected in the input tab to all the external modules
-    def propagateInputFidList1(self, newModel):
-        for key, value in self.ExternalPythonModules.iteritems():
-            if hasattr(value, 'inputLandmarksSelector'):
-                value.inputLandmarksSelector.setCurrentNode(newModel)
-            elif hasattr(value, 'inputMovingModelSelector'):
-                value.inputMovingModelSelector.setCurrentNode(newModel)
-
-    # This function propagate the model2 selected in the input tab to all the external modules
-    def propagateInputModel2(self, newModel):
-        for key, value in self.ExternalPythonModules.iteritems():
-            if hasattr(value, 'inputModelSelector'):
-                value.inputModelSelector.setCurrentNode(newModel)
-            elif hasattr(value, 'inputMovingModelSelector'):
-                value.inputMovingModelSelector.setCurrentNode(newModel)
-
-    # This function propagate the Fiducial List 2 selected in the input tab to all the external modules
-    def propagateInputFidList2(self, newModel):
-        for key, value in self.ExternalPythonModules.iteritems():
-            if hasattr(value, 'inputLandmarksSelector'):
-                value.inputLandmarksSelector.setCurrentNode(newModel)
-            elif hasattr(value, 'inputMovingLandmarksSelector'):
-                value.inputMovingLandmarksSelector.setCurrentNode(newModel)
-
-
+    # This function propagate the inputs selected in the input tab the selected external module
+    def propagationOfInputDataToExternalModules(self):
+        print "--- Propagation of input data to external Modules ---"
+        inputModel1 = self.Model1MRMLNodeComboBox.currentNode()
+        inputFidList1 = self.FidList1MRMLNodeComboBox.currentNode()
+        inputModel2 = self.Model2MRMLNodeComboBox.currentNode()
+        inputFidList2 = self.FidList2MRMLNodeComboBox.currentNode()
+        for ExtModTab in self.ExternalModuleTabDict.itervalues():
+            if ExtModTab.choiceComboBox.currentIndex != 0:
+                if self.SingleModelRadioButton.isChecked():
+                    if hasattr(ExtModTab.currentModule, 'inputModelSelector'):
+                        ExtModTab.currentModule.inputModelSelector.setCurrentNode(None)
+                        ExtModTab.currentModule.inputModelSelector.setCurrentNode(inputModel1)
+                        ExtModTab.currentModule.inputLandmarksSelector.setCurrentNode(inputFidList1)
+                elif self.TwoModelsRadioButton.isChecked():
+                    if self.Model1RadioButton.isChecked():
+                        if hasattr(ExtModTab.currentModule, 'inputModelSelector'):
+                            ExtModTab.currentModule.inputModelSelector.setCurrentNode(None)
+                            ExtModTab.currentModule.inputModelSelector.setCurrentNode(inputModel1)
+                            ExtModTab.currentModule.inputLandmarksSelector.setCurrentNode(inputFidList1)
+                    elif self.Model2RadioButton.isChecked():
+                        if hasattr(ExtModTab.currentModule, 'inputModelSelector'):
+                            ExtModTab.currentModule.inputModelSelector.setCurrentNode(None)
+                            ExtModTab.currentModule.inputModelSelector.setCurrentNode(inputModel2)
+                            ExtModTab.currentModule.inputLandmarksSelector.setCurrentNode(inputFidList2)
+                    if hasattr(ExtModTab.currentModule, 'inputFixedModelSelector'):
+                        ExtModTab.currentModule.inputFixedModelSelector.setCurrentNode(None)
+                        ExtModTab.currentModule.inputFixedModelSelector.setCurrentNode(inputModel1)
+                        ExtModTab.currentModule.inputMovingModelSelector.setCurrentNode(None)
+                        ExtModTab.currentModule.inputMovingModelSelector.setCurrentNode(inputModel2)
+                        ExtModTab.currentModule.inputFixedLandmarksSelector.setCurrentNode(inputFidList1)
+                        ExtModTab.currentModule.inputMovingLandmarksSelector.setCurrentNode(inputFidList2)
 
 # ******************************************************************* #
 # **************** Longitudinal Quantification Logic **************** #
