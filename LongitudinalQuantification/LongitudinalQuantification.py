@@ -200,6 +200,9 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
                 value.loadLandmarksOnSurfacCheckBox.hide()
             elif hasattr(value, 'InputCollapsibleButton'):
                 value.InputCollapsibleButton.hide()
+                value.ModelLabel.hide()
+                value.fixedModel.hide()
+                value.movingModel.hide()
 
         # --------------------------------------------- #
         # ---------------- Connections ---------------- #
@@ -295,12 +298,14 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
             self.Model2groupBox.setEnabled(False)
             self.Model1RadioButton.hide()
             self.Model2RadioButton.hide()
+            self.ExternalModuleTabDict["Preprocessing"].choiceComboBox.removeItem(2)
         else:
             self.Model2groupBox.setEnabled(True)
             self.Model2MRMLNodeComboBox.setEnabled(True)
             self.FidList2MRMLNodeComboBox.setEnabled(True)
             self.Model1RadioButton.show()
             self.Model2RadioButton.show()
+            self.ExternalModuleTabDict["Preprocessing"].choiceComboBox.addItem("Surface Registration")
         self.propagationOfInputDataToExternalModules()
 
     # This function propagate the inputs selected in the input tab the selected external module
@@ -335,6 +340,12 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
                         ExtModTab.currentModule.inputMovingModelSelector.setCurrentNode(inputModel2)
                         ExtModTab.currentModule.inputFixedLandmarksSelector.setCurrentNode(inputFidList1)
                         ExtModTab.currentModule.inputMovingLandmarksSelector.setCurrentNode(inputFidList2)
+                        if self.Model1RadioButton.isChecked():
+                            ExtModTab.currentModule.fixedModel.setChecked(True)
+                            ExtModTab.currentModule.onFixedModelRadio()
+                        if self.Model2RadioButton.isChecked():
+                            ExtModTab.currentModule.movingModel.setChecked(True)
+                            ExtModTab.currentModule.onMovingModelRadio()
 
 # ******************************************************************* #
 # **************** Longitudinal Quantification Logic **************** #

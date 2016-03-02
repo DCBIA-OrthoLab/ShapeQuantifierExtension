@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="qMRMLWidget" name="Form">
+ <class>LongitudinalQuantification</class>
+ <widget class="qMRMLWidget" name="LongitudinalQuantification">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -377,11 +377,6 @@
           <item>
            <property name="text">
             <string>Easy Clip</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Surface Registration</string>
            </property>
           </item>
          </widget>
