@@ -16,8 +16,12 @@ class ExternalModuleTab():
 
     def hideCurrentModule(self):
         if self.currentModule:
-            self.layout.removeWidget(self.currentModule.widget)
-            self.currentModule.widget.hide()
+            if hasattr(self.currentModule, 'widget'):
+                self.layout.removeWidget(self.currentModule.widget)
+                self.currentModule.widget.hide()
+            else:
+                self.layout.removeWidget(self.currentModule.widgetRepresentation())
+                self.currentModule.widgetRepresentation().hide()
             self.choiceComboBox.setCurrentIndex(0)
 
     def deleteCurrentModule(self):
@@ -27,8 +31,12 @@ class ExternalModuleTab():
 
     def showCurrentModule(self):
         if self.currentModule:
-            self.layout.addWidget(self.currentModule.widget)
-            self.currentModule.widget.show()
+            if hasattr(self.currentModule, 'widget'):
+                self.layout.addWidget(self.currentModule.widget)
+                self.currentModule.widget.show()
+            else:
+                self.layout.addWidget(self.currentModule.widgetRepresentation())
+                self.currentModule.widgetRepresentation().show()
             self.choiceComboBox.setCurrentIndex(self.currentComboboxIndex)
 
     def setCurrentModule(self, module, index):
