@@ -192,25 +192,19 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         # ------ Creation of a dictionary that will contain all the modules ----- #
         self.ExternalModulesDict = dict(self.ExternalPythonModules, **self.ExternalCLIModules)
 
-        # ------ Setup of the external modules ------ #
+        # ------ Setup of the external Python modules ------ #
         # Hiding of the scene tabs and the input tabs in
         # all the external modules to avoid redundancies
         # and make this module as clear and simple as possible
 
-        for key, value in self.ExternalPythonModules.iteritems():
-            if hasattr(value, 'SceneCollapsibleButton'):
-                value.SceneCollapsibleButton.hide()
-            if hasattr(value, 'inputModelLabel'):
-                value.inputModelLabel.hide()
-                value.inputLandmarksLabel.hide()
-                value.inputModelSelector.hide()
-                value.inputLandmarksSelector.hide()
-                value.loadLandmarksOnSurfacCheckBox.hide()
-            elif hasattr(value, 'InputCollapsibleButton'):
-                value.InputCollapsibleButton.hide()
-                value.ModelLabel.hide()
-                value.fixedModel.hide()
-                value.movingModel.hide()
+            #This part of the setup is now made in the enter function
+
+        # ------ Setup of the external CLI modules ------ #
+        # Setting the size to the good value
+
+        for key, value in self.ExternalCLIModules.iteritems():
+            value.widgetRepresentation().setSizePolicy(1,1)
+            value.widgetRepresentation().adjustSize()
 
         # --------------------------------------------- #
         # ---------------- Connections ---------------- #
@@ -253,10 +247,45 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
     # function called each time that the user "enter" in Longitudinal Quantification interface
     def enter(self):
         print "---- Enter Longitudinal Quantification ---- "
+        # Hiding the input selection of each module when entering in Longitudinal quantification
+        for key, value in self.ExternalPythonModules.iteritems():
+            if hasattr(value, 'SceneCollapsibleButton'):
+                value.SceneCollapsibleButton.hide()
+            if hasattr(value, 'inputModelLabel'):
+                value.inputModelLabel.hide()
+                value.inputLandmarksLabel.hide()
+                value.inputModelSelector.hide()
+                value.inputLandmarksSelector.hide()
+                value.loadLandmarksOnSurfacCheckBox.hide()
+            elif hasattr(value, 'InputCollapsibleButton'):
+                value.InputCollapsibleButton.hide()
+                value.ModelLabel.hide()
+                value.fixedModel.hide()
+                value.movingModel.hide()
+        for key, ExternalModule in self.ExternalModuleTabDict.iteritems():
+            if not ExternalModule.collapsibleButton.collapsed:
+                ExternalModule.showCurrentModule()
 
     # function called each time that the user "exit" in Longitudinal Quantification interface
     def exit(self):
         print "---- Exit Longitudinal Quantification ---- "
+        # Showing the input selection of each module when exiting Longitudinal quantification
+        # This allow the user to normaly use the modules without Longitudinal Quantification
+        for key, value in self.ExternalPythonModules.iteritems():
+            if hasattr(value, 'SceneCollapsibleButton'):
+                value.SceneCollapsibleButton.show()
+            if hasattr(value, 'inputModelLabel'):
+                value.inputModelLabel.show()
+                value.inputLandmarksLabel.show()
+                value.inputModelSelector.show()
+                value.inputLandmarksSelector.show()
+                value.loadLandmarksOnSurfacCheckBox.show()
+            elif hasattr(value, 'InputCollapsibleButton'):
+                value.InputCollapsibleButton.show()
+                value.ModelLabel.show()
+                value.fixedModel.show()
+                value.movingModel.show()
+            value.layout.addWidget(value.widget)
 
     # function called each time that the scene is closed (if Longitudinal Quantification has been initialized)
     def onCloseScene(self, obj, event):
