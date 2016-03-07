@@ -301,18 +301,19 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
     # all the other tabs are closed by this function
     def onSelectedCollapsibleButtonChanged(self, selectedCollapsibleButton):
         print "--- on Selected Collapsible Button Changed ---"
-        self.SceneCollapsibleButton.setChecked(False)
-        self.DataSelectionCollapsibleButton.setChecked(False)
-        for ExtModTab in self.ExternalModuleTabDict.itervalues():
-            ExtModTab.choiceComboBox.blockSignals(True)
-            if ExtModTab.collapsibleButton is selectedCollapsibleButton:
-                ExtModTab.showCurrentModule()
-            else:
-                ExtModTab.collapsibleButton.setChecked(False)
-                ExtModTab.hideCurrentModule()
-            ExtModTab.choiceComboBox.blockSignals(False)
-        selectedCollapsibleButton.setChecked(True)
-        self.propagationOfInputDataToExternalModules()
+        if selectedCollapsibleButton.isChecked():
+            self.SceneCollapsibleButton.setChecked(False)
+            self.DataSelectionCollapsibleButton.setChecked(False)
+            for ExtModTab in self.ExternalModuleTabDict.itervalues():
+                ExtModTab.choiceComboBox.blockSignals(True)
+                if ExtModTab.collapsibleButton is selectedCollapsibleButton:
+                    ExtModTab.showCurrentModule()
+                else:
+                    ExtModTab.collapsibleButton.setChecked(False)
+                    ExtModTab.hideCurrentModule()
+                ExtModTab.choiceComboBox.blockSignals(False)
+            selectedCollapsibleButton.setChecked(True)
+            self.propagationOfInputDataToExternalModules()
 
     # ---------- switching of External Module ----------- #
     # This function hide all the external widgets if they are displayed
