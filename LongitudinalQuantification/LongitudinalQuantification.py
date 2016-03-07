@@ -34,6 +34,7 @@ class ExternalModuleTab():
             if hasattr(self.currentModule, 'widget'):
                 self.layout.addWidget(self.currentModule.widget)
                 self.currentModule.widget.show()
+                self.currentModule.enter()
             else:
                 self.layout.addWidget(self.currentModule.widgetRepresentation())
                 self.currentModule.widgetRepresentation().show()
@@ -120,6 +121,7 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         treeViewHeader.setResizeMode(sceneModel.nameColumn,qt.QHeaderView.Stretch)
         treeViewHeader.setResizeMode(sceneModel.colorColumn,qt.QHeaderView.ResizeToContents)
         treeViewHeader.setResizeMode(sceneModel.opacityColumn,qt.QHeaderView.ResizeToContents)
+        self.computeBoxPushButton = self.logic.get("computeBoxPushButton")
 
         # ------ Step Group Box ----- #
         self.Model1RadioButton = self.logic.get("Model1RadioButton")
@@ -213,6 +215,7 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         # ------ Scene Collapsible Button ----- #
         self.SceneCollapsibleButton.\
             connect('clicked()', lambda: self.onSelectedCollapsibleButtonChanged(self.SceneCollapsibleButton))
+        self.computeBoxPushButton.connect('clicked()', self.ExternalModulesDict["Easy Clip"].onComputeBox)
 
         # ------ Step Group Box ----- #
         self.Model1RadioButton.connect('clicked()', self.propagationOfInputDataToExternalModules)
