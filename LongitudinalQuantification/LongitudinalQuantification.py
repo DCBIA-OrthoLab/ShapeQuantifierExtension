@@ -41,6 +41,7 @@ class ExternalModuleTab():
             self.choiceComboBox.setCurrentIndex(self.currentComboboxIndex)
 
     def setCurrentModule(self, module, index):
+        self.deleteCurrentModule()
         self.currentModule = module
         self.currentComboboxIndex = index
         self.showCurrentModule()
@@ -329,9 +330,10 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         for ExtModTab in self.ExternalModuleTabDict.itervalues():
             ExtModTab.choiceComboBox.blockSignals(True)
             if ExtModTab.choiceComboBox is currentCombobox:
-                ExtModTab.deleteCurrentModule()
                 if newModule != "None":
                     ExtModTab.setCurrentModule(self.ExternalModulesDict[newModule], currentCombobox.currentIndex)
+                else:
+                    ExtModTab.deleteCurrentModule()
             else:
                 ExtModTab.hideCurrentModule()
             ExtModTab.choiceComboBox.blockSignals(False)
