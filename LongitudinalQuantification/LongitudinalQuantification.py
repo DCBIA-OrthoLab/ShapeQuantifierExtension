@@ -125,13 +125,11 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.computeBoxPushButton = self.logic.get("computeBoxPushButton")
 
         # ------ Step Group Box ----- #
+        self.ModelRadioGroupBox = self.logic.get("ModelRadioGroupBox")
+        self.ModelRadioGroupBox.hide()
         self.Model1RadioButton = self.logic.get("Model1RadioButton")
-        self.Model1RadioButton.hide()
-        self.Model2RadioButton = self.logic.get("Model2RadioButton")
-        self.Model2RadioButton.hide()
-        self.PreviousStepPushButton = self.logic.get("PreviousStepPushButton")
-        self.NextStepPushButton = self.logic.get("NextStepPushButton")
         self.logic.get("verticalLayout_4").setAlignment(0x84)
+        self.Model2RadioButton = self.logic.get("Model2RadioButton")
         self.logic.get("verticalLayout_5").setAlignment(0x84)
 
         # ------ Data selection Collapsible Button ----- #
@@ -345,15 +343,14 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
     def onNumberOfModelForMeasureChange(self, isSingleModelMeasurement):
         if isSingleModelMeasurement:
             self.Model2groupBox.setEnabled(False)
-            self.Model1RadioButton.hide()
-            self.Model2RadioButton.hide()
+            self.ModelRadioGroupBox.hide()
+            self.Model1RadioButton.setChecked(True)
             self.ExternalModuleTabDict["Preprocessing"].choiceComboBox.removeItem(2)
         else:
             self.Model2groupBox.setEnabled(True)
+            self.ModelRadioGroupBox.show()
             self.Model2MRMLNodeComboBox.setEnabled(True)
             self.FidList2MRMLNodeComboBox.setEnabled(True)
-            self.Model1RadioButton.show()
-            self.Model2RadioButton.show()
             self.ExternalModuleTabDict["Preprocessing"].choiceComboBox.addItem("Surface Registration")
         self.propagationOfInputDataToExternalModules()
 
