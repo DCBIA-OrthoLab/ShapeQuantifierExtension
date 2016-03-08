@@ -242,10 +242,16 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
 
         # ------ Closing of the scene -----#
         slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, self.onCloseScene)
+        self.enter()
 
     # ******************************************* #
     # ---------------- Algorithm ---------------- #
     # ******************************************* #
+
+    def onReload(self):
+        slicer.util.reloadScriptedModule(self.moduleName)
+        for key, value in self.ExternalPythonModules.iteritems():
+            slicer.util.reloadScriptedModule(value.moduleName)
 
     # function called each time that the user "enter" in Longitudinal Quantification interface
     def enter(self):
