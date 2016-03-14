@@ -11,6 +11,7 @@ set(EXTENSION_CONTRIBUTORS "Jean-Baptiste Vimort (University of Michigan)")
 set(EXTENSION_DESCRIPTION "TODO")
 set(EXTENSION_ICONURL "TODO")
 set(EXTENSION_SCREENSHOTURLS "TODO")
+set(EXTENSION_DEPENDS "AnglePlanesExtension, CMFreg, EasyClip, MeshStatisticsExtension, ModelToModelDistance, PickAndPaintExtension, Q3DC, ShapePopulationViewer")
 
 #-----------------------------------------------------------------------------
 # Extension dependencies
