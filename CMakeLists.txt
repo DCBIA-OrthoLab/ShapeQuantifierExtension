@@ -11,7 +11,7 @@ set(EXTENSION_CONTRIBUTORS "Jean-Baptiste Vimort (University of Michigan)")
 set(EXTENSION_DESCRIPTION "TODO")
 set(EXTENSION_ICONURL "TODO")
 set(EXTENSION_SCREENSHOTURLS "TODO")
-set(EXTENSION_DEPENDS "AnglePlanesExtension, CMFreg, EasyClip, MeshStatisticsExtension, ModelToModelDistance, PickAndPaintExtension, Q3DC, ShapePopulationViewer")
+set(EXTENSION_DEPENDS "CMFreg, ModelToModelDistance, ShapePopulationViewer")
 
 #-----------------------------------------------------------------------------
 # Extension dependencies
@@ -20,8 +20,12 @@ include(${Slicer_USE_FILE})
 
 #-----------------------------------------------------------------------------
 # Extension modules
+add_subdirectory(AnglePlanes)
+add_subdirectory(EasyClip)
 add_subdirectory(LongitudinalQuantification)
-## NEXT_MODULE
+add_subdirectory(MeshStatistics)
+add_subdirectory(PickAndPaint)
+add_subdirectory(Q3DC)
 
 #-----------------------------------------------------------------------------
 include(${Slicer_EXTENSION_CPACK})

@@ -34,6 +34,7 @@ class ExternalModuleTab():
             if hasattr(self.currentModule, 'widget'):
                 self.layout.addWidget(self.currentModule.widget)
                 self.currentModule.widget.show()
+            if hasattr(self.currentModule, 'enter'):
                 self.currentModule.enter()
             else:
                 self.layout.addWidget(self.currentModule.widgetRepresentation())
