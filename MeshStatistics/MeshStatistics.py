@@ -3,6 +3,7 @@ import math
 import re
 import csv
 import os
+import sys
 from __main__ import vtk, qt, ctk, slicer
 from random import randint
 from slicer.ScriptedLoadableModule import *
@@ -29,8 +30,19 @@ class MeshStatistics(ScriptedLoadableModule):
 
 class MeshStatisticsWidget(ScriptedLoadableModuleWidget):
     def setup(self):
-        print "-------Mesh Statistic Widget Setup-------"
         ScriptedLoadableModuleWidget.setup(self)
+        print "-------Mesh Statistic Widget Setup-------"
+        moduleName = 'MeshStatistics'
+        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
+        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
+
+        libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
+        sys.path.insert(0, libPath)
+
+        # import the external library that contain the functions comon to all DCBIA modules
+        import DCBIA
+        DCBIA = reload(DCBIA)
+
         # -------------------------------------------------------------------------------------
         self.modelList = list()
         self.fieldList = list()
@@ -50,11 +62,7 @@ class MeshStatisticsWidget(ScriptedLoadableModuleWidget):
         # ------------ Loading of the .ui file ---------- #
 
         loader = qt.QUiLoader()
-        moduleName = 'MeshStatistics'
-        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
-        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
         path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
-
         qfile = qt.QFile(path)
         qfile.open(qt.QFile.ReadOnly)
         widget = loader.load(qfile, self.parent)

@@ -5,6 +5,7 @@ import numpy
 import time
 from slicer.ScriptedLoadableModule import *
 import json
+import sys
 
 class PickAndPaint(ScriptedLoadableModule):
     def __init__(self, parent):
@@ -24,19 +25,26 @@ class PickAndPaint(ScriptedLoadableModule):
 
 class PickAndPaintWidget(ScriptedLoadableModuleWidget):
     def setup(self):
-        print "-------Pick And Paint Widget Setup--------"
         ScriptedLoadableModuleWidget.setup(self)
+        print "-------Pick And Paint Widget Setup--------"
+        moduleName = 'PickAndPaint'
+        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
+        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
+
+        libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
+        sys.path.insert(0, libPath)
+
+        # import the external library that contain the functions comon to all DCBIA modules
+        import DCBIA
+        DCBIA = reload(DCBIA)
+
         #reload the logic if there is any change
         self.logic = PickAndPaintLogic(self)
         self.interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
 
         # UI setup
         loader = qt.QUiLoader()
-        moduleName = 'PickAndPaint'
-        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
-        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
         path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
-
         qfile = qt.QFile(path)
         qfile.open(qt.QFile.ReadOnly)
         widget = loader.load(qfile, self.parent)

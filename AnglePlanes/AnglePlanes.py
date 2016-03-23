@@ -8,6 +8,7 @@ from math import *
 import json
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
+import sys
 
 
 class ModelAddedClass(VTKObservationMixin):
@@ -71,6 +72,16 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
     def setup(self):
         ScriptedLoadableModuleWidget.setup(self)
         print "-------Angle Planes Widget Setup-------"
+        moduleName = 'AnglePlanes'
+        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
+        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
+
+        libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
+        sys.path.insert(0, libPath)
+
+        # import the external library that contain the functions comon to all DCBIA modules
+        import DCBIA
+        DCBIA = reload(DCBIA)
 
         self.moduleName = "AnglePlanes"
         self.i = 0
@@ -84,11 +95,7 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
 
         # UI setup
         loader = qt.QUiLoader()
-        moduleName = 'AnglePlanes'
-        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
-        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
         path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
-
         qfile = qt.QFile(path)
         qfile.open(qt.QFile.ReadOnly)
         widget = loader.load(qfile, self.parent)

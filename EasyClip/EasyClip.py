@@ -4,6 +4,7 @@ import os
 import numpy
 import pickle
 import json
+import sys
 
 #
 # Load Files
@@ -39,6 +40,17 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
     def setup(self):
         ScriptedLoadableModuleWidget.setup(self)
         print "-------Easy Clip Widget Setup---------"
+        moduleName = 'EasyClip'
+        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
+        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
+
+        libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
+        sys.path.insert(0, libPath)
+
+        # import the external library that contain the functions comon to all DCBIA modules
+        import DCBIA
+        DCBIA = reload(DCBIA)
+
         # GLOBALS:
         self.logic = EasyClipLogic(self)
         self.ignoredNodeNames = ('Red Volume Slice', 'Yellow Volume Slice', 'Green Volume Slice')
@@ -52,12 +64,8 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
         # Interface
         #
         loader = qt.QUiLoader()
-        moduleName = 'EasyClip'
-        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
-        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
-        path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
-
-        qfile = qt.QFile(path)
+        UIpath = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
+        qfile = qt.QFile(UIpath)
         qfile.open(qt.QFile.ReadOnly)
         widget = loader.load(qfile, self.parent)
         self.layout = self.parent.layout()

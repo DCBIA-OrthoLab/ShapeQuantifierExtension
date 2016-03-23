@@ -4,6 +4,7 @@ import numpy, csv, os
 import json
 import time
 import math
+import sys
 
 #
 # CalculateDisplacement
@@ -39,6 +40,18 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
     def setup(self):
         print "-------Q3DC Widget Setup------"
         ScriptedLoadableModuleWidget.setup(self)
+
+        moduleName = 'Q3DC'
+        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
+        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
+
+        libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
+        sys.path.insert(0, libPath)
+
+        # import the external library that contain the functions comon to all DCBIA modules
+        import DCBIA
+        DCBIA = reload(DCBIA)
+
         # GLOBALS:
         self.logic = Q3DCLogic(self)
         self.interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
@@ -55,9 +68,6 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
 
         # UI setup
         loader = qt.QUiLoader()
-        moduleName = 'Q3DC'
-        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
-        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
         path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
 
         qfile = qt.QFile(path)
