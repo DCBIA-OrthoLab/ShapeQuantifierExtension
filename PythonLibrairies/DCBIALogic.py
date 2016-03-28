@@ -259,8 +259,8 @@ class DCBIALogic():
         landmarks.SetAttribute("MarkupAddedEventTag",self.encodeJSON({"MarkupAddedEventTag":MarkupAddedEventTag}))
         PointModifiedEventTag = landmarks.AddObserver(landmarks.PointModifiedEvent, self.onPointModifiedEvent)
         landmarks.SetAttribute("PointModifiedEventTag",self.encodeJSON({"PointModifiedEventTag":PointModifiedEventTag}))
-        MarkupRemovedEventTag = landmarks.AddObserver(landmarks.MarkupRemovedEvent, self.onMarkupRemovedEvent)
-        landmarks.SetAttribute("MarkupRemovedEventTag",self.encodeJSON({"MarkupRemovedEventTag":MarkupRemovedEventTag}))
+        # MarkupRemovedEventTag = landmarks.AddObserver(landmarks.MarkupRemovedEvent, self.onMarkupRemovedEvent)
+        # landmarks.SetAttribute("MarkupRemovedEventTag",self.encodeJSON({"MarkupRemovedEventTag":MarkupRemovedEventTag}))
         UpdatesPlanesEventTag = landmarks.AddObserver(landmarks.PointModifiedEvent, self.updatePlanesEvent)
         landmarks.SetAttribute("UpdatesPlanesEventTag",self.encodeJSON({"UpdatesPlanesEventTag":UpdatesPlanesEventTag}))
 
@@ -339,10 +339,10 @@ class DCBIALogic():
                     isFound = True
             if not isFound:
                 IDs.append(ID)
-        for ID in IDs:
-            self.deleteLandmark(obj, landmarkDescription[ID]["landmarkLabel"])
-            landmarkDescription.pop(ID,None)
-        obj.SetAttribute("landmarkDescription",self.encodeJSON(landmarkDescription))
+        # for ID in IDs:
+        #     self.deleteLandmark(obj, landmarkDescription[ID]["landmarkLabel"])
+        #     landmarkDescription.pop(ID,None)
+        # obj.SetAttribute("landmarkDescription",self.encodeJSON(landmarkDescription))
 
     def updatePlanesEvent(self, obj, event):
         for planeControls in self.interface.planeControlsDictionary.values():
@@ -431,11 +431,10 @@ class DCBIALogic():
     def deleteLandmark(self, fidList, label):
         # update of the Combobox that are always updated
         self.interface.landmarkComboBox.removeItem(self.interface.landmarkComboBox.findText(label))
-        for planeControls in self.interface.planeControlsDictionary.values():
-            if planeControls.fidlist is fidList:
-                planeControls.landmark1ComboBox.removeItem(planeControls.landmark1ComboBox.findText(label))
-                planeControls.landmark2ComboBox.removeItem(planeControls.landmark2ComboBox.findText(label))
-                planeControls.landmark3ComboBox.removeItem(planeControls.landmark3ComboBox.findText(label))
+        if hasattr(self.interface.logic, 'getComboboxesToUpdate'):
+            comboboxesToUpdate = self.interface.logic.getComboboxesToUpdate(fidList, markupID)
+            for combobox in comboboxesToUpdate:
+                combobox.removeItem(combobox.findText(label))
 
     def GetConnectedVertices(self, connectedVerticesIDList, polyData, pointID):
         # Return IDs of all the vertices that compose the first neighbor.
