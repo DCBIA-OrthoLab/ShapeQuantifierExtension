@@ -219,27 +219,35 @@ class DCBIALogic():
         try:
             tag = self.decodeJSON(landmarks.GetAttribute("MarkupAddedEventTag"))
             landmarks.RemoveObserver(tag["MarkupAddedEventTag"])
-            print "adding observers removed!"
+            print "Markups adding observer removed!"
         except:
             pass
         try:
             tag = self.decodeJSON(landmarks.GetAttribute("PointModifiedEventTag"))
             landmarks.RemoveObserver(tag["PointModifiedEventTag"])
-            print "moving observers removed!"
+            print "Markups moving observer removed!"
         except:
             pass
         try:
             tag = self.decodeJSON(landmarks.GetAttribute("MarkupRemovedEventTag"))
             landmarks.RemoveObserver(tag["MarkupRemovedEventTag"])
-            print "removing observers removed!"
+            print "Markups removing observers removed!"
         except:
             pass
-        try:
-            tag = self.decodeJSON(landmarks.GetAttribute("UpdatesPlanesEventTag"))
-            landmarks.RemoveObserver(tag["UpdatesPlanesEventTag"])
-            print "Planes observers removed!"
-        except:
-            pass
+        if self.interface.moduleName is 'AnglePlanes':
+            try:
+                tag = self.decodeJSON(landmarks.GetAttribute("UpdatesPlanesEventTag"))
+                landmarks.RemoveObserver(tag["UpdatesPlanesEventTag"])
+                print "Planes modification observers removed!"
+            except:
+                pass
+        if self.interface.moduleName is 'Q3DC':
+            try:
+                tag = self.decodeJSON(landmarks.GetAttribute("UpdatesLinesEventTag"))
+                landmarks.RemoveObserver(tag["UpdatesLinesEventTag"])
+                print "Lines modification observers removed!"
+            except:
+                pass
         if connectedModelID:
             if connectedModelID != model.GetID():
                 if self.connectedModelChangement():
@@ -259,10 +267,14 @@ class DCBIALogic():
         landmarks.SetAttribute("MarkupAddedEventTag",self.encodeJSON({"MarkupAddedEventTag":MarkupAddedEventTag}))
         PointModifiedEventTag = landmarks.AddObserver(landmarks.PointModifiedEvent, self.onPointModifiedEvent)
         landmarks.SetAttribute("PointModifiedEventTag",self.encodeJSON({"PointModifiedEventTag":PointModifiedEventTag}))
-        # MarkupRemovedEventTag = landmarks.AddObserver(landmarks.MarkupRemovedEvent, self.onMarkupRemovedEvent)
-        # landmarks.SetAttribute("MarkupRemovedEventTag",self.encodeJSON({"MarkupRemovedEventTag":MarkupRemovedEventTag}))
-        UpdatesPlanesEventTag = landmarks.AddObserver(landmarks.PointModifiedEvent, self.updatePlanesEvent)
-        landmarks.SetAttribute("UpdatesPlanesEventTag",self.encodeJSON({"UpdatesPlanesEventTag":UpdatesPlanesEventTag}))
+        MarkupRemovedEventTag = landmarks.AddObserver(landmarks.MarkupRemovedEvent, self.onMarkupRemovedEvent)
+        landmarks.SetAttribute("MarkupRemovedEventTag",self.encodeJSON({"MarkupRemovedEventTag":MarkupRemovedEventTag}))
+        if self.interface.moduleName is 'AnglePlanes':
+            UpdatesPlanesEventTag = landmarks.AddObserver(landmarks.PointModifiedEvent, self.updatePlanesEvent)
+            landmarks.SetAttribute("UpdatesPlanesEventTag",self.encodeJSON({"UpdatesPlanesEventTag":UpdatesPlanesEventTag}))
+        if self.interface.moduleName is 'Q3DC':
+            UpdatesLinesEventTag = landmarks.AddObserver(landmarks.PointModifiedEvent, self.updateLinesEvent)
+            landmarks.SetAttribute("UpdatesLinesEventTag",self.encodeJSON({"UpdatesLinesEventTag":UpdatesLinesEventTag}))
 
     # Called when a landmark is added on a model
     def onMarkupAddedEvent(self, obj, event):
@@ -349,6 +361,36 @@ class DCBIALogic():
             if planeControls.fidlist is obj:
                 planeControls.update()
 
+    def updateLinesEvent(self, obj, event):
+        if self.interface.line1LAComboBox.currentText != '' and self.interface.line1LBComboBox.currentText != '' \
+                and self.interface.line1LAComboBox.currentText != self.interface.line1LBComboBox.currentText :
+            # Clear Lines, then define new ones
+            if self.interface.renderer1 :
+                self.interface.renderer1.RemoveActor(self.interface.actor1)
+            self.interface.renderer1, self.interface.actor1 = \
+                self.interface.logic.drawLineBetween2Landmark(self.interface.line1LAComboBox.currentText,
+                                              self.interface.line1LBComboBox.currentText,
+                                              self.interface.fidListComboBoxline1LA.currentNode(),
+                                              self.interface.fidListComboBoxline1LB.currentNode())
+        if self.interface.line2LAComboBox.currentText != '' and self.interface.line2LBComboBox.currentText != '' \
+                and self.interface.line2LAComboBox.currentText != self.interface.line2LBComboBox.currentText :
+            if self.interface.renderer2 :
+                self.interface.renderer2.RemoveActor(self.interface.actor2)
+            self.interface.renderer2, self.interface.actor2 = \
+                self.interface.logic.drawLineBetween2Landmark(self.interface.line2LAComboBox.currentText,
+                                              self.interface.line2LBComboBox.currentText,
+                                              self.interface.fidListComboBoxline2LA.currentNode(),
+                                              self.interface.fidListComboBoxline2LB.currentNode())
+        if self.interface.lineLAComboBox.currentText != '' and self.interface.lineLBComboBox.currentText != '' \
+                and self.interface.lineLAComboBox.currentText != self.interface.lineLBComboBox.currentText :
+            if self.interface.renderer3 :
+                self.interface.renderer3.RemoveActor(self.interface.actor3)
+            self.interface.renderer3, self.interface.actor3 = \
+                self.interface.logic.drawLineBetween2Landmark(self.interface.lineLAComboBox.currentText,
+                                              self.interface.lineLBComboBox.currentText,
+                                              self.interface.fidListComboBoxlineLA.currentNode(),
+                                              self.interface.fidListComboBoxlineLB.currentNode())
+
     def findIDFromLabel(self, fidList, landmarkLabel):
         # find the ID of the markupsNode from the label of a landmark!
         landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
@@ -402,10 +444,10 @@ class DCBIALogic():
 
     def updateLandmarkComboBox(self, fidList, combobox, displayMidPoint = True):
         combobox.blockSignals(True)
-        landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         combobox.clear()
         if not fidList:
             return
+        landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         numOfFid = fidList.GetNumberOfMarkups()
         if numOfFid > 0:
             for i in range(0, numOfFid):
