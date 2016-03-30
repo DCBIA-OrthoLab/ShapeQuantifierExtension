@@ -1,8 +1,6 @@
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import numpy, csv, os
-import json
-import time
 import math
 import sys
 
@@ -41,19 +39,20 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         print "-------Q3DC Widget Setup------"
         ScriptedLoadableModuleWidget.setup(self)
 
-        moduleName = 'Q3DC'
-        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
+        self.moduleName = 'Q3DC'
+        scriptedModulesPath = eval('slicer.modules.%s.path' % self.moduleName.lower())
         scriptedModulesPath = os.path.dirname(scriptedModulesPath)
 
         libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
-        import DCBIA
-        DCBIA = reload(DCBIA)
+        import DCBIALogic
+        reload(DCBIALogic)
 
         # GLOBALS:
-        self.logic = Q3DCLogic(self)
+        self.DCBIALogic = DCBIALogic.DCBIALogic(self)
+        self.logic = Q3DCLogic(interface=self, DCBIALogic=self.DCBIALogic)
         self.interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
         self.computedDistanceList = list()
         self.computedAnglesList = list()
@@ -68,8 +67,7 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
 
         # UI setup
         loader = qt.QUiLoader()
-        path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
-
+        path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %self.moduleName)
         qfile = qt.QFile(path)
         qfile.open(qt.QFile.ReadOnly)
         widget = loader.load(qfile, self.parent)
@@ -78,48 +76,48 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.layout.addWidget(widget)
 
         #--------------------------- Scene --------------------------#
-        self.SceneCollapsibleButton = self.logic.get("SceneCollapsibleButton") # this atribute is usefull for Longitudinal quantification extension
-        treeView = self.logic.get("treeView")
+        self.SceneCollapsibleButton = self.DCBIALogic.get("SceneCollapsibleButton") # this atribute is usefull for Longitudinal quantification extension
+        treeView = self.DCBIALogic.get("treeView")
         treeView.setMRMLScene(slicer.app.mrmlScene())
         treeView.sceneModel().setHorizontalHeaderLabels(["Models"])
         treeView.sortFilterProxyModel().nodeTypes = ['vtkMRMLModelNode','vtkMRMLMarkupsFiducialNode']
         treeView.header().setVisible(False)
         # --------------- landmark modification --------------
-        self.inputModelLabel = self.logic.get("inputModelLabel")  # this atribute is usefull for Longitudinal quantification extension
-        self.inputLandmarksLabel = self.logic.get("inputLandmarksLabel")  # this atribute is usefull for Longitudinal quantification extension
-        self.landmarkModif = self.logic.get("landmarkModif")
-        self.inputModelSelector = self.logic.get("inputModelSelector")
+        self.inputModelLabel = self.DCBIALogic.get("inputModelLabel")  # this atribute is usefull for Longitudinal quantification extension
+        self.inputLandmarksLabel = self.DCBIALogic.get("inputLandmarksLabel")  # this atribute is usefull for Longitudinal quantification extension
+        self.landmarkModif = self.DCBIALogic.get("landmarkModif")
+        self.inputModelSelector = self.DCBIALogic.get("inputModelSelector")
         self.inputModelSelector.setMRMLScene(slicer.mrmlScene)
         self.inputModelSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onModelChanged)
-        self.addLandmarkButton = self.logic.get("addLandmarkButton")
+        self.addLandmarkButton = self.DCBIALogic.get("addLandmarkButton")
         self.addLandmarkButton.connect('clicked()', self.onAddLandmarkButtonClicked)
-        self.inputLandmarksSelector = self.logic.get("inputLandmarksSelector")
+        self.inputLandmarksSelector = self.DCBIALogic.get("inputLandmarksSelector")
         self.inputLandmarksSelector.setMRMLScene(slicer.mrmlScene)
         self.inputLandmarksSelector.setEnabled(False) # The "enable" property seems to not be imported from the .ui
         self.inputLandmarksSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onLandmarksChanged)
-        self.loadLandmarksOnSurfacCheckBox = self.logic.get("loadLandmarksOnSurfacCheckBox")
-        self.landmarkComboBox = self.logic.get("landmarkComboBox")
+        self.loadLandmarksOnSurfacCheckBox = self.DCBIALogic.get("loadLandmarksOnSurfacCheckBox")
+        self.landmarkComboBox = self.DCBIALogic.get("landmarkComboBox")
         self.landmarkComboBox.connect('currentIndexChanged(QString)', self.UpdateInterface)
-        self.surfaceDeplacementCheckBox = self.logic.get("surfaceDeplacementCheckBox")
+        self.surfaceDeplacementCheckBox = self.DCBIALogic.get("surfaceDeplacementCheckBox")
         self.surfaceDeplacementCheckBox.connect('stateChanged(int)', self.onSurfaceDeplacementStateChanged)
         #        ----------------- Compute Mid Point -------------
-        self.midPointGroupBox = self.logic.get("midPointGroupBox")
-        self.landmarkComboBox1 = self.logic.get("landmarkComboBox1")
+        self.midPointGroupBox = self.DCBIALogic.get("midPointGroupBox")
+        self.landmarkComboBox1 = self.DCBIALogic.get("landmarkComboBox1")
         self.landmarkComboBox1.connect('currentIndexChanged(int)', self.UpdateInterface)
-        self.landmarkComboBox2 = self.logic.get("landmarkComboBox2")
+        self.landmarkComboBox2 = self.DCBIALogic.get("landmarkComboBox2")
         self.landmarkComboBox2.connect('currentIndexChanged(int)', self.UpdateInterface)
-        self.defineMiddlePointButton = self.logic.get("defineMiddlePointButton")
+        self.defineMiddlePointButton = self.DCBIALogic.get("defineMiddlePointButton")
         self.defineMiddlePointButton.connect('clicked()', self.onDefineMidPointClicked)
-        self.midPointOnSurfaceCheckBox = self.logic.get("midPointOnSurfaceCheckBox")
+        self.midPointOnSurfaceCheckBox = self.DCBIALogic.get("midPointOnSurfaceCheckBox")
 #        ------------------- 1st OPTION -------------------
-        self.distanceGroupBox = self.logic.get("distanceGroupBox")
-        self.landmarkComboBoxA = self.logic.get("landmarkComboBoxA")
-        self.fidListComboBoxA = self.logic.get("fidListComboBoxA")
+        self.distanceGroupBox = self.DCBIALogic.get("distanceGroupBox")
+        self.landmarkComboBoxA = self.DCBIALogic.get("landmarkComboBoxA")
+        self.fidListComboBoxA = self.DCBIALogic.get("fidListComboBoxA")
         self.fidListComboBoxA.setMRMLScene(slicer.mrmlScene)
-        self.landmarkComboBoxB = self.logic.get("landmarkComboBoxB")
-        self.fidListComboBoxB = self.logic.get("fidListComboBoxB")
+        self.landmarkComboBoxB = self.DCBIALogic.get("landmarkComboBoxB")
+        self.fidListComboBoxB = self.DCBIALogic.get("fidListComboBoxB")
         self.fidListComboBoxB.setMRMLScene(slicer.mrmlScene)
-        self.computeDistancesPushButton = self.logic.get("computeDistancesPushButton")
+        self.computeDistancesPushButton = self.DCBIALogic.get("computeDistancesPushButton")
         self.computeDistancesPushButton.connect('clicked()', self.onComputeDistanceClicked)
         self.landmarkComboBoxA.connect('currentIndexChanged(int)', self.UpdateInterface)
         self.landmarkComboBoxB.connect('currentIndexChanged(int)', self.UpdateInterface)
@@ -128,7 +126,7 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.fidListComboBoxB.connect('currentNodeChanged(vtkMRMLNode*)',
                                       lambda: self.logic.UpdateLandmarkComboboxA(self.fidListComboBoxB, self.landmarkComboBoxB))
         # ---------------------------- Directory - Export Button -----------------------------
-        self.distanceLayout = self.logic.get("distanceLayout")
+        self.distanceLayout = self.DCBIALogic.get("distanceLayout")
         self.distanceTable = qt.QTableWidget()
         self.directoryExportDistance = ctk.ctkDirectoryButton()
         self.exportDistanceButton = qt.QPushButton(" Export ")
@@ -140,24 +138,24 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.tableAndExportLayout.addWidget(self.distanceTable)
         self.tableAndExportLayout.addLayout(self.exportDistanceLayout)
 #       ------------------- 2nd OPTION -------------------
-        self.angleLayout = self.logic.get("angleLayout")
-        self.angleGroupBox = self.logic.get("angleGroupBox")
-        self.line1LAComboBox = self.logic.get("line1LAComboBox")
-        self.fidListComboBoxline1LA = self.logic.get("fidListComboBoxline1LA")
+        self.angleLayout = self.DCBIALogic.get("angleLayout")
+        self.angleGroupBox = self.DCBIALogic.get("angleGroupBox")
+        self.line1LAComboBox = self.DCBIALogic.get("line1LAComboBox")
+        self.fidListComboBoxline1LA = self.DCBIALogic.get("fidListComboBoxline1LA")
         self.fidListComboBoxline1LA.setMRMLScene(slicer.mrmlScene)
-        self.line1LBComboBox = self.logic.get("line1LBComboBox")
-        self.fidListComboBoxline1LB = self.logic.get("fidListComboBoxline1LB")
+        self.line1LBComboBox = self.DCBIALogic.get("line1LBComboBox")
+        self.fidListComboBoxline1LB = self.DCBIALogic.get("fidListComboBoxline1LB")
         self.fidListComboBoxline1LB.setMRMLScene(slicer.mrmlScene)
-        self.line2LAComboBox = self.logic.get("line2LAComboBox")
-        self.fidListComboBoxline2LA = self.logic.get("fidListComboBoxline2LA")
+        self.line2LAComboBox = self.DCBIALogic.get("line2LAComboBox")
+        self.fidListComboBoxline2LA = self.DCBIALogic.get("fidListComboBoxline2LA")
         self.fidListComboBoxline2LA.setMRMLScene(slicer.mrmlScene)
-        self.line2LBComboBox = self.logic.get("line2LBComboBox")
-        self.fidListComboBoxline2LB = self.logic.get("fidListComboBoxline2LB")
+        self.line2LBComboBox = self.DCBIALogic.get("line2LBComboBox")
+        self.fidListComboBoxline2LB = self.DCBIALogic.get("fidListComboBoxline2LB")
         self.fidListComboBoxline2LB.setMRMLScene(slicer.mrmlScene)
-        self.pitchCheckBox = self.logic.get("pitchCheckBox")
-        self.rollCheckBox = self.logic.get("rollCheckBox")
-        self.yawCheckBox = self.logic.get("yawCheckBox")
-        self.computeAnglesPushButton = self.logic.get("computeAnglesPushButton")
+        self.pitchCheckBox = self.DCBIALogic.get("pitchCheckBox")
+        self.rollCheckBox = self.DCBIALogic.get("rollCheckBox")
+        self.yawCheckBox = self.DCBIALogic.get("yawCheckBox")
+        self.computeAnglesPushButton = self.DCBIALogic.get("computeAnglesPushButton")
         self.fidListComboBoxline1LA.connect('currentNodeChanged(vtkMRMLNode*)',
                                       lambda: self.logic.UpdateLandmarkComboboxA(self.fidListComboBoxline1LA, self.line1LAComboBox))
         self.fidListComboBoxline1LB.connect('currentNodeChanged(vtkMRMLNode*)',
@@ -187,17 +185,17 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.tableAndExportAngleLayout.addWidget(self.anglesTable)
         self.tableAndExportAngleLayout.addLayout(self.exportAngleLayout)
 #       ------------------- 3rd OPTION -------------------
-        self.linePointGroupBox = self.logic.get("linePointGroupBox")
-        self.lineLAComboBox = self.logic.get("lineLAComboBox")
-        self.fidListComboBoxlineLA = self.logic.get("fidListComboBoxlineLA")
+        self.linePointGroupBox = self.DCBIALogic.get("linePointGroupBox")
+        self.lineLAComboBox = self.DCBIALogic.get("lineLAComboBox")
+        self.fidListComboBoxlineLA = self.DCBIALogic.get("fidListComboBoxlineLA")
         self.fidListComboBoxlineLA.setMRMLScene(slicer.mrmlScene)
-        self.lineLBComboBox = self.logic.get("lineLBComboBox")
-        self.fidListComboBoxlineLB = self.logic.get("fidListComboBoxlineLB")
+        self.lineLBComboBox = self.DCBIALogic.get("lineLBComboBox")
+        self.fidListComboBoxlineLB = self.DCBIALogic.get("fidListComboBoxlineLB")
         self.fidListComboBoxlineLB.setMRMLScene(slicer.mrmlScene)
-        self.linePointComboBox = self.logic.get("linePointComboBox")
-        self.fidListComboBoxlinePoint = self.logic.get("fidListComboBoxlinePoint")
+        self.linePointComboBox = self.DCBIALogic.get("linePointComboBox")
+        self.fidListComboBoxlinePoint = self.DCBIALogic.get("fidListComboBoxlinePoint")
         self.fidListComboBoxlinePoint.setMRMLScene(slicer.mrmlScene)
-        self.computeLinePointPushButton = self.logic.get("computeLinePointPushButton")
+        self.computeLinePointPushButton = self.DCBIALogic.get("computeLinePointPushButton")
         self.fidListComboBoxlineLA.connect('currentNodeChanged(vtkMRMLNode*)',
                                       lambda: self.logic.UpdateLandmarkComboboxA(self.fidListComboBoxlineLA, self.lineLAComboBox))
         self.fidListComboBoxlineLB.connect('currentNodeChanged(vtkMRMLNode*)',
@@ -208,7 +206,7 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.lineLAComboBox.connect('currentIndexChanged(int)', self.UpdateInterface)
         self.lineLBComboBox.connect('currentIndexChanged(int)', self.UpdateInterface)
         # ---------------------------- Directory - Export Button -----------------------------
-        self.LinePointLayout = self.logic.get("LinePointLayout")
+        self.LinePointLayout = self.DCBIALogic.get("LinePointLayout")
         self.linePointTable = qt.QTableWidget()
         self.directoryExportLinePoint = ctk.ctkDirectoryButton()
         self.exportLinePointButton = qt.QPushButton("Export")
@@ -283,13 +281,13 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         end = list.GetNumberOfItems()
         for i in range(0,end):
             fidList = list.GetItemAsObject(i)
-            landmarkDescription = self.logic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+            landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
             if landmarkDescription:
                 for n in range(fidList.GetNumberOfMarkups()):
                     markupID = fidList.GetNthMarkupID(n)
                     markupLabel = fidList.GetNthMarkupLabel(n)
                     landmarkDescription[markupID]["landmarkLabel"] = markupLabel
-                fidList.SetAttribute("landmarkDescription",self.logic.encodeJSON(landmarkDescription))
+                fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
 
 
     def UpdateInterface(self):
@@ -325,6 +323,8 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
             self.renderer3 = None
         if self.line1LAComboBox.currentText != '' and\
                         self.line1LBComboBox.currentText != '' and\
+                        self.fidListComboBoxline1LA.currentNode() and\
+                        self.fidListComboBoxline1LB.currentNode() and\
                         self.line1LAComboBox.currentText != self.line1LBComboBox.currentText :
             self.renderer1, self.actor1 = \
                 self.logic.drawLineBetween2Landmark(self.line1LAComboBox.currentText,
@@ -333,6 +333,8 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
                                                     self.fidListComboBoxline1LB.currentNode())
         if self.line2LAComboBox.currentText != '' and\
                         self.line2LBComboBox.currentText != '' and\
+                        self.fidListComboBoxline2LA.currentNode() and\
+                        self.fidListComboBoxline2LB.currentNode() and\
                         self.line2LAComboBox.currentText != self.line2LBComboBox.currentText :
             self.renderer2, self.actor2 = \
                 self.logic.drawLineBetween2Landmark(self.line2LAComboBox.currentText,
@@ -341,35 +343,36 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
                                                     self.fidListComboBoxline2LB.currentNode())
         if self.lineLAComboBox.currentText != '' and\
                         self.lineLBComboBox.currentText != '' and\
+                        self.fidListComboBoxlineLA.currentNode() and\
+                        self.fidListComboBoxlineLB.currentNode() and\
                         self.lineLAComboBox.currentText != self.lineLBComboBox.currentText:
             self.renderer3, self.actor3 = \
                 self.logic.drawLineBetween2Landmark(self.lineLAComboBox.currentText,
                                                     self.lineLBComboBox.currentText,
                                                     self.fidListComboBoxlineLA.currentNode(),
                                                     self.fidListComboBoxlineLB.currentNode())
-        self.logic.UpdateThreeDView(self.landmarkComboBox.currentText)
+        self.DCBIALogic.UpdateThreeDView(self.landmarkComboBox.currentText)
 
     def onModelChanged(self):
         print "-------Model Changed--------"
-        if self.logic.selectedModel:
-            Model = self.logic.selectedModel
+        if self.DCBIALogic.selectedModel:
+            Model = self.DCBIALogic.selectedModel
             try:
-                Model.RemoveObserver(self.logic.decodeJSON(self.logic.selectedModel.GetAttribute("modelModifieTagEvent")))
+                Model.RemoveObserver(self.DCBIALogic.decodeJSON(self.DCBIALogic.selectedModel.GetAttribute("modelModifieTagEvent")))
             except:
                 pass
-        self.logic.selectedModel = self.inputModelSelector.currentNode()
-        self.logic.ModelChanged(self.inputModelSelector, self.inputLandmarksSelector)
+        self.DCBIALogic.selectedModel = self.inputModelSelector.currentNode()
+        self.DCBIALogic.ModelChanged(self.inputModelSelector, self.inputLandmarksSelector)
         self.inputLandmarksSelector.setCurrentNode(None)
 
     def onLandmarksChanged(self):
         print "-------Landmarks Changed--------"
         if self.inputModelSelector.currentNode():
-            self.logic.FidList = self.inputLandmarksSelector.currentNode()
-            self.logic.selectedFidList = self.inputLandmarksSelector.currentNode()
-            self.logic.selectedModel = self.inputModelSelector.currentNode()
+            self.DCBIALogic.selectedFidList = self.inputLandmarksSelector.currentNode()
+            self.DCBIALogic.selectedModel = self.inputModelSelector.currentNode()
             if self.inputLandmarksSelector.currentNode():
                 onSurface = self.loadLandmarksOnSurfacCheckBox.isChecked()
-                self.logic.connectLandmarks(self.inputModelSelector,
+                self.DCBIALogic.connectLandmarks(self.inputModelSelector,
                                       self.inputLandmarksSelector,
                                       onSurface)
             else:
@@ -380,47 +383,47 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         # If no input model selected, the addition of fiducial shouldn't be possible.
         selectionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLSelectionNodeSingleton")
         selectionNode.SetReferenceActivePlaceNodeClassName("vtkMRMLMarkupsFiducialNode")
-        if self.logic.selectedModel:
-            if self.logic.selectedFidList:
-                selectionNode.SetActivePlaceNodeID(self.logic.selectedFidList.GetID())
+        if self.DCBIALogic.selectedModel:
+            if self.DCBIALogic.selectedFidList:
+                selectionNode.SetActivePlaceNodeID(self.DCBIALogic.selectedFidList.GetID())
                 self.interactionNode.SetCurrentInteractionMode(1)
             else:
-                self.logic.warningMessage("Please select a fiducial list")
+                self.DCBIALogic.warningMessage("Please select a fiducial list")
         else:
-            self.logic.warningMessage("Please select a model")
+            self.DCBIALogic.warningMessage("Please select a model")
 
     def onSurfaceDeplacementStateChanged(self):
-        activeInput = self.logic.selectedModel
+        activeInput = self.DCBIALogic.selectedModel
         if not activeInput:
             return
-        fidList = self.logic.selectedFidList
+        fidList = self.DCBIALogic.selectedFidList
         if not fidList:
             return
-        selectedFidReflID = self.logic.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
+        selectedFidReflID = self.DCBIALogic.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
         isOnSurface = self.surfaceDeplacementCheckBox.isChecked()
-        landmarkDescription = self.logic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         if isOnSurface:
             hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
             landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = True
             landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] =\
-                self.logic.projectOnSurface(hardenModel, fidList, selectedFidReflID)
+                self.DCBIALogic.projectOnSurface(hardenModel, fidList, selectedFidReflID)
         else:
             landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = False
             landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] = None
             landmarkDescription[selectedFidReflID]["ROIradius"] = 0
-        fidList.SetAttribute("landmarkDescription",self.logic.encodeJSON(landmarkDescription))
+        fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
 
     def onDefineMidPointClicked(self):
-        fidList = self.logic.selectedFidList
+        fidList = self.DCBIALogic.selectedFidList
         if not fidList:
-            self.logic.warningMessage("Please select a model of reference and afiducial List.")
-        landmark1ID = self.logic.findIDFromLabel(fidList,self.landmarkComboBox1.currentText)
-        landmark2ID = self.logic.findIDFromLabel(fidList,self.landmarkComboBox2.currentText)
-        coord = self.logic.calculateMidPointCoord(fidList, landmark1ID, landmark2ID)
+            self.DCBIALogic.warningMessage("Please select a model of reference and afiducial List.")
+        landmark1ID = self.DCBIALogic.findIDFromLabel(fidList,self.landmarkComboBox1.currentText)
+        landmark2ID = self.DCBIALogic.findIDFromLabel(fidList,self.landmarkComboBox2.currentText)
+        coord = self.DCBIALogic.calculateMidPointCoord(fidList, landmark1ID, landmark2ID)
         fidList.AddFiducial(coord[0],coord[1],coord[2])
         fidList.SetNthFiducialSelected(fidList.GetNumberOfMarkups() - 1, False)
         # update of the data structure
-        landmarkDescription = self.logic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         numOfMarkups = fidList.GetNumberOfMarkups()
         markupID = fidList.GetNthMarkupID(numOfMarkups - 1)
         landmarkDescription[landmark1ID]["midPoint"]["definedByThisMarkup"].append(markupID)
@@ -435,12 +438,12 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
             landmarkDescription[markupID]["projection"]["isProjected"] = True
             hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
             landmarkDescription[markupID]["projection"]["closestPointIndex"] = \
-                self.logic.projectOnSurface(hardenModel, fidList, markupID)
+                self.DCBIALogic.projectOnSurface(hardenModel, fidList, markupID)
         else:
             landmarkDescription[markupID]["projection"]["isProjected"] = False
-        fidList.SetAttribute("landmarkDescription",self.logic.encodeJSON(landmarkDescription))
-        self.logic.interface.UpdateInterface()
-        self.logic.updateLandmarkComboBox(fidList, self.landmarkComboBox, False)
+        fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
+        self.UpdateInterface()
+        self.DCBIALogic.updateLandmarkComboBox(fidList, self.landmarkComboBox, False)
         fidList.SetNthFiducialPositionFromArray(numOfMarkups - 1, coord)
 
     def onComputeDistanceClicked(self):
@@ -507,27 +510,15 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.logic.exportationFunction(self.directoryExportLinePoint, self.computedLinePointList, 'linePoint')
 
 class Q3DCLogic(ScriptedLoadableModuleLogic):
-    def __init__(self, interface):
+    def __init__(self, interface, DCBIALogic):
         self.interface = interface
+        self.DCBIALogic = DCBIALogic
         self.selectedModel = None
         self.selectedFidList = None
         self.numberOfDecimals = 3
         system = qt.QLocale().system()
         self.decimalPoint = chr(system.decimalPoint())
         self.comboboxdict = dict()
-
-    def get(self, objectName):
-        return self.findWidget(self.interface.widget, objectName)
-
-    def findWidget(self, widget, objectName):
-        if widget.objectName == objectName:
-            return widget
-        else:
-            for w in widget.children():
-                resulting_widget = self.findWidget(w, objectName)
-                if resulting_widget:
-                    return resulting_widget
-            return None
 
     def initComboboxdict(self):
         self.comboboxdict[self.interface.landmarkComboBoxA] = None
@@ -578,451 +569,6 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
             self.SIComponent = None
             self.ThreeDComponent = None
 
-    def UpdateThreeDView(self, landmarkLabel):
-        # Update the 3D view on Slicer
-        if not self.selectedFidList:
-            return
-        if not self.selectedModel:
-            return
-        print "UpdateThreeDView"
-        active = self.selectedFidList
-        #deactivate all landmarks
-        list = slicer.mrmlScene.GetNodesByClass("vtkMRMLMarkupsFiducialNode")
-        end = list.GetNumberOfItems()
-        selectedFidReflID = self.findIDFromLabel(active,landmarkLabel)
-        for i in range(0,end):
-            fidList = list.GetItemAsObject(i)
-            print fidList.GetID()
-            landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
-            for key in landmarkDescription.iterkeys():
-                markupsIndex = fidList.GetMarkupIndexByID(key)
-                if key != selectedFidReflID:
-                    fidList.SetNthMarkupLocked(markupsIndex, True)
-                else:
-                    fidList.SetNthMarkupLocked(markupsIndex, False)
-                    fidList.SetNthMarkupLocked(markupsIndex, False)
-        displayNode = self.selectedModel.GetModelDisplayNode()
-        displayNode.SetScalarVisibility(False)
-        if selectedFidReflID != False:
-            displayNode.SetScalarVisibility(True)
-
-    def createIntermediateHardenModel(self, model):
-        hardenModel = slicer.mrmlScene.GetNodesByName("SurfaceRegistration_" + model.GetName() + "_hardenCopy_" + str(
-            slicer.app.applicationPid())).GetItemAsObject(0)
-        if hardenModel is None:
-            hardenModel = slicer.vtkMRMLModelNode()
-        hardenPolyData = vtk.vtkPolyData()
-        hardenPolyData.DeepCopy(model.GetPolyData())
-        hardenModel.SetAndObservePolyData(hardenPolyData)
-        hardenModel.SetName(
-            "SurfaceRegistration_" + model.GetName() + "_hardenCopy_" + str(slicer.app.applicationPid()))
-        if model.GetParentTransformNode():
-            hardenModel.SetAndObserveTransformNodeID(model.GetParentTransformNode().GetID())
-        hardenModel.HideFromEditorsOn()
-        slicer.mrmlScene.AddNode(hardenModel)
-        logic = slicer.vtkSlicerTransformLogic()
-        logic.hardenTransform(hardenModel)
-        return hardenModel
-
-    def onModelModified(self, obj, event):
-        #recompute the harden model
-        hardenModel = self.createIntermediateHardenModel(obj)
-        obj.SetAttribute("hardenModelID",hardenModel.GetID())
-        # for each fiducial list
-        list = slicer.mrmlScene.GetNodesByClass("vtkMRMLMarkupsFiducialNode")
-        end = list.GetNumberOfItems()
-        for i in range(0,end):
-            # If landmarks are projected on the modified model
-            fidList = list.GetItemAsObject(i)
-            if fidList.GetAttribute("connectedModelID"):
-                if fidList.GetAttribute("connectedModelID") == obj.GetID():
-                    #replace the harden model with the new one
-                    fidList.SetAttribute("hardenModelID",hardenModel.GetID())
-                    #reproject the fiducials on the new model
-                    landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
-                    for n in range(fidList.GetNumberOfMarkups()):
-                        markupID = fidList.GetNthMarkupID(n)
-                        if landmarkDescription[markupID]["projection"]["isProjected"] == True:
-                            hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
-                            markupsIndex = fidList.GetMarkupIndexByID(markupID)
-                            self.replaceLandmark(hardenModel.GetPolyData(), fidList, markupsIndex,
-                                                 landmarkDescription[markupID]["projection"]["closestPointIndex"])
-                        fidList.SetAttribute("landmarkDescription",self.encodeJSON(landmarkDescription))
-
-    def ModelChanged(self, inputModelSelector, inputLandmarksSelector):
-        inputModel = inputModelSelector.currentNode()
-        # if a Model Node is present
-        if inputModel:
-            self.selectedModel = inputModel
-            hardenModel = self.createIntermediateHardenModel(inputModel)
-            inputModel.SetAttribute("hardenModelID",hardenModel.GetID())
-            modelModifieTagEvent = inputModel.AddObserver(inputModel.TransformModifiedEvent, self.onModelModified)
-            inputModel.SetAttribute("modelModifieTagEvent",self.encodeJSON({'modelModifieTagEvent':modelModifieTagEvent}))
-            inputLandmarksSelector.setEnabled(True)
-        # if no model is selected
-        else:
-            # Update the fiducial list selector
-            inputLandmarksSelector.setCurrentNode(None)
-            inputLandmarksSelector.setEnabled(False)
-
-    def isUnderTransform(self, markups):
-        if markups.GetParentTransformNode():
-            messageBox = ctk.ctkMessageBox()
-            messageBox.setWindowTitle(" /!\ WARNING /!\ ")
-            messageBox.setIcon(messageBox.Warning)
-            messageBox.setText("Your Markup Fiducial Node is currently modified by a transform,"
-                               "if you choose to continue the program will apply the transform"
-                               "before doing anything else!")
-            messageBox.setInformativeText("Do you want to continue?")
-            messageBox.setStandardButtons(messageBox.No | messageBox.Yes)
-            choice = messageBox.exec_()
-            if choice == messageBox.Yes:
-                logic = slicer.vtkSlicerTransformLogic()
-                logic.hardenTransform(markups)
-                return False
-            else:
-                messageBox.setText(" Node not modified")
-                messageBox.setStandardButtons(messageBox.Ok)
-                messageBox.setInformativeText("")
-                messageBox.exec_()
-                return True
-        else:
-            return False
-
-    def connectedModelChangement(self):
-        messageBox = ctk.ctkMessageBox()
-        messageBox.setWindowTitle(" /!\ WARNING /!\ ")
-        messageBox.setIcon(messageBox.Warning)
-        messageBox.setText("The Markup Fiducial Node selected is curently projected on an"
-                           "other model, if you chose to continue the fiducials will be  "
-                           "reprojected, and this could impact the functioning of other modules")
-        messageBox.setInformativeText("Do you want to continue?")
-        messageBox.setStandardButtons(messageBox.No | messageBox.Yes)
-        choice = messageBox.exec_()
-        if choice == messageBox.Yes:
-            return True
-        else:
-            messageBox.setText(" Node not modified")
-            messageBox.setStandardButtons(messageBox.Ok)
-            messageBox.setInformativeText("")
-            messageBox.exec_()
-            return False
-
-    def createNewDataStructure(self,landmarks, model, onSurface):
-        landmarks.SetAttribute("connectedModelID",model.GetID())
-        landmarks.SetAttribute("hardenModelID",model.GetAttribute("hardenModelID"))
-        landmarkDescription = dict()
-        for n in range(landmarks.GetNumberOfMarkups()):
-            markupID = landmarks.GetNthMarkupID(n)
-            landmarkDescription[markupID] = dict()
-            landmarkLabel = landmarks.GetNthMarkupLabel(n)
-            landmarkDescription[markupID]["landmarkLabel"] = landmarkLabel
-            landmarkDescription[markupID]["ROIradius"] = 0
-            landmarkDescription[markupID]["projection"] = dict()
-            if onSurface:
-                landmarkDescription[markupID]["projection"]["isProjected"] = True
-                hardenModel = slicer.app.mrmlScene().GetNodeByID(landmarks.GetAttribute("hardenModelID"))
-                landmarkDescription[markupID]["projection"]["closestPointIndex"] = \
-                    self.projectOnSurface(hardenModel, landmarks, markupID)
-            else:
-                landmarkDescription[markupID]["projection"]["isProjected"] = False
-                landmarkDescription[markupID]["projection"]["closestPointIndex"] = None
-            landmarkDescription[markupID]["midPoint"] = dict()
-            landmarkDescription[markupID]["midPoint"]["definedByThisMarkup"] = list()
-            landmarkDescription[markupID]["midPoint"]["isMidPoint"] = False
-            landmarkDescription[markupID]["midPoint"]["Point1"] = None
-            landmarkDescription[markupID]["midPoint"]["Point2"] = None
-        landmarks.SetAttribute("landmarkDescription",self.encodeJSON(landmarkDescription))
-        planeDescription = dict()
-        landmarks.SetAttribute("planeDescription",self.encodeJSON(planeDescription))
-        landmarks.SetAttribute("isClean",self.encodeJSON({"isClean":False}))
-        landmarks.SetAttribute("lastTransformID",None)
-        landmarks.SetAttribute("arrayName",model.GetName() + "_ROI")
-
-    def changementOfConnectedModel(self,landmarks, model, onSurface):
-        landmarks.SetAttribute("connectedModelID",model.GetID())
-        landmarks.SetAttribute("hardenModelID",model.GetAttribute("hardenModelID"))
-        landmarkDescription = self.decodeJSON(landmarks.GetAttribute("landmarkDescription"))
-        for n in range(landmarks.GetNumberOfMarkups()):
-            markupID = landmarks.GetNthMarkupID(n)
-            if onSurface:
-                if landmarkDescription[markupID]["projection"]["isProjected"] == True:
-                    hardenModel = slicer.app.mrmlScene().GetNodeByID(landmarks.GetAttribute("hardenModelID"))
-                    landmarkDescription[markupID]["projection"]["closestPointIndex"] = \
-                        self.projectOnSurface(hardenModel, landmarks, markupID)
-            else:
-                landmarkDescription[markupID]["projection"]["isProjected"] = False
-                landmarkDescription[markupID]["projection"]["closestPointIndex"] = None
-            landmarks.SetAttribute("landmarkDescription",self.encodeJSON(landmarkDescription))
-        landmarks.SetAttribute("isClean",self.encodeJSON({"isClean":False}))
-
-    def connectLandmarks(self, modelSelector, landmarkSelector, onSurface):
-        model = modelSelector.currentNode()
-        landmarks = landmarkSelector.currentNode()
-        self.selectedFidList = landmarks
-        self.selectedModel = model
-        if not (model and landmarks):
-            return
-
-        if self.isUnderTransform(landmarks):
-            landmarkSelector.setCurrentNode(None)
-            return
-        connectedModelID = landmarks.GetAttribute("connectedModelID")
-        try:
-            tag = self.decodeJSON(landmarks.GetAttribute("MarkupAddedEventTag"))
-            landmarks.RemoveObserver(tag["MarkupAddedEventTag"])
-            print "adding observers removed!"
-        except:
-            pass
-        try:
-            tag = self.decodeJSON(landmarks.GetAttribute("UpdatesLinesEventTag"))
-            landmarks.RemoveObserver(tag["UpdatesLinesEventTag"])
-            print "lines observers removed!"
-        except:
-            pass
-        try:
-            tag = self.decodeJSON(landmarks.GetAttribute("PointModifiedEventTag"))
-            landmarks.RemoveObserver(tag["PointModifiedEventTag"])
-            print "moving observers removed!"
-        except:
-            pass
-        try:
-            tag = self.decodeJSON(landmarks.GetAttribute("MarkupRemovedEventTag"))
-            landmarks.RemoveObserver(tag["MarkupRemovedEventTag"])
-            print "removing observers removed!"
-        except:
-            pass
-        if connectedModelID:
-            if connectedModelID != model.GetID():
-                if self.connectedModelChangement():
-                    self.changementOfConnectedModel(landmarks, model, onSurface)
-                else:
-                    landmarkSelector.setCurrentNode(None)
-                    return
-            else:
-                landmarks.SetAttribute("hardenModelID",model.GetAttribute("hardenModelID"))
-        # creation of the data structure
-        else:
-            self.createNewDataStructure(landmarks, model, onSurface)
-        #update of the landmark Combo Box
-        self.updateLandmarkComboBox(landmarks, self.interface.landmarkComboBox, False)
-        self.updateLandmarkComboBox(landmarks, self.interface.landmarkComboBox1)
-        self.updateLandmarkComboBox(landmarks, self.interface.landmarkComboBox2)
-        #adding of listeners
-        MarkupAddedEventTag = landmarks.AddObserver(landmarks.MarkupAddedEvent, self.onMarkupAddedEvent)
-        landmarks.SetAttribute("MarkupAddedEventTag",self.encodeJSON({"MarkupAddedEventTag":MarkupAddedEventTag}))
-        UpdatesLinesEventTag = landmarks.AddObserver(landmarks.PointModifiedEvent, self.updateLinesEvent)
-        landmarks.SetAttribute("UpdatesLinesEventTag",self.encodeJSON({"UpdatesLinesEventTag":UpdatesLinesEventTag}))
-        PointModifiedEventTag = landmarks.AddObserver(landmarks.PointModifiedEvent, self.onPointModifiedEvent)
-        landmarks.SetAttribute("PointModifiedEventTag",self.encodeJSON({"PointModifiedEventTag":PointModifiedEventTag}))
-        MarkupRemovedEventTag = landmarks.AddObserver(landmarks.MarkupRemovedEvent, self.onMarkupRemovedEvent)
-        landmarks.SetAttribute("MarkupRemovedEventTag",self.encodeJSON({"MarkupRemovedEventTag":MarkupRemovedEventTag}))
-
-    # Called when a landmark is added on a model
-    def onMarkupAddedEvent(self, obj, event):
-        print "------markup adding-------"
-        landmarkDescription = self.decodeJSON(obj.GetAttribute("landmarkDescription"))
-        numOfMarkups = obj.GetNumberOfMarkups()
-        markupID = obj.GetNthMarkupID(numOfMarkups - 1)
-        landmarkDescription[markupID] = dict()
-        landmarkLabel = obj.GetNthMarkupLabel(numOfMarkups - 1)
-        landmarkDescription[markupID]["landmarkLabel"] = landmarkLabel
-        landmarkDescription[markupID]["ROIradius"] = 0
-        landmarkDescription[markupID]["projection"] = dict()
-        landmarkDescription[markupID]["projection"]["isProjected"] = True
-        # The landmark will be projected by onPointModifiedEvent
-        landmarkDescription[markupID]["midPoint"] = dict()
-        landmarkDescription[markupID]["midPoint"]["definedByThisMarkup"] = list()
-        landmarkDescription[markupID]["midPoint"]["isMidPoint"] = False
-        landmarkDescription[markupID]["midPoint"]["Point1"] = None
-        landmarkDescription[markupID]["midPoint"]["Point2"] = None
-        obj.SetAttribute("landmarkDescription",self.encodeJSON(landmarkDescription))
-        self.updateAllLandmarkComboBox(obj, markupID)
-        self.interface.UpdateInterface()
-        self.onPointModifiedEvent(obj,None)
-
-    def updateLinesEvent(self, obj, event):
-        if self.interface.line1LAComboBox.currentText != '' and self.interface.line1LBComboBox.currentText != '' \
-                and self.interface.line1LAComboBox.currentText != self.interface.line1LBComboBox.currentText :
-            # Clear Lines, then define new ones
-            if self.interface.renderer1 :
-                self.interface.renderer1.RemoveActor(self.interface.actor1)
-            self.interface.renderer1, self.interface.actor1 = \
-                self.drawLineBetween2Landmark(self.interface.line1LAComboBox.currentText,
-                                              self.interface.line1LBComboBox.currentText,
-                                              self.interface.fidListComboBoxline1LA.currentNode(),
-                                              self.interface.fidListComboBoxline1LB.currentNode())
-        if self.interface.line2LAComboBox.currentText != '' and self.interface.line2LBComboBox.currentText != '' \
-                and self.interface.line2LAComboBox.currentText != self.interface.line2LBComboBox.currentText :
-            if self.interface.renderer2 :
-                self.interface.renderer2.RemoveActor(self.interface.actor2)
-            self.interface.renderer2, self.interface.actor2 = \
-                self.drawLineBetween2Landmark(self.interface.line2LAComboBox.currentText,
-                                              self.interface.line2LBComboBox.currentText,
-                                              self.interface.fidListComboBoxline2LA.currentNode(),
-                                              self.interface.fidListComboBoxline2LB.currentNode())
-        if self.interface.lineLAComboBox.currentText != '' and self.interface.lineLBComboBox.currentText != '' \
-                and self.interface.lineLAComboBox.currentText != self.interface.lineLBComboBox.currentText :
-            if self.interface.renderer3 :
-                self.interface.renderer3.RemoveActor(self.interface.actor3)
-            self.interface.renderer3, self.interface.actor3 = \
-                self.drawLineBetween2Landmark(self.interface.lineLAComboBox.currentText,
-                                              self.interface.lineLBComboBox.currentText,
-                                              self.interface.fidListComboBoxlineLA.currentNode(),
-                                              self.interface.fidListComboBoxlineLB.currentNode())
-
-    def updateMidPoint(self, fidList, landmarkID):
-        landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
-        for midPointID in landmarkDescription[landmarkID]["midPoint"]["definedByThisMarkup"]:
-            if landmarkDescription[midPointID]["midPoint"]["isMidPoint"]:
-                landmark1ID = landmarkDescription[midPointID]["midPoint"]["Point1"]
-                landmark2ID = landmarkDescription[midPointID]["midPoint"]["Point2"]
-                coord = self.calculateMidPointCoord(fidList, landmark1ID, landmark2ID)
-                index = fidList.GetMarkupIndexByID(midPointID)
-                fidList.SetNthFiducialPositionFromArray(index, coord)
-                if landmarkDescription[midPointID]["projection"]["isProjected"]:
-                    hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
-                    landmarkDescription[midPointID]["projection"]["closestPointIndex"] = \
-                        self.projectOnSurface(hardenModel, fidList, midPointID)
-                    fidList.SetAttribute("landmarkDescription",self.encodeJSON(landmarkDescription))
-                self.updateMidPoint(fidList, midPointID)
-
-    # Called when a landmarks is moved
-    def onPointModifiedEvent(self, obj, event):
-        print "----onPointModifiedEvent Q3DC-----"
-        landmarkDescription = self.decodeJSON(obj.GetAttribute("landmarkDescription"))
-        if not landmarkDescription:
-            return
-        selectedLandmarkID = self.findIDFromLabel(obj, self.interface.landmarkComboBox.currentText)
-        # remove observer to make sure, the callback function won't work..
-        tag = self.decodeJSON(obj.GetAttribute("PointModifiedEventTag"))
-        obj.RemoveObserver(tag["PointModifiedEventTag"])
-        if selectedLandmarkID:
-            activeLandmarkState = landmarkDescription[selectedLandmarkID]
-            print activeLandmarkState
-            if activeLandmarkState["projection"]["isProjected"]:
-                hardenModel = slicer.app.mrmlScene().GetNodeByID(obj.GetAttribute("hardenModelID"))
-                activeLandmarkState["projection"]["closestPointIndex"] = \
-                    self.projectOnSurface(hardenModel, obj, selectedLandmarkID)
-                obj.SetAttribute("landmarkDescription",self.encodeJSON(landmarkDescription))
-            self.updateMidPoint(obj,selectedLandmarkID)
-            self.findROI(obj)
-        time.sleep(0.08)
-        # Add the observer again
-        PointModifiedEventTag = obj.AddObserver(obj.PointModifiedEvent, self.onPointModifiedEvent)
-        obj.SetAttribute("PointModifiedEventTag",self.encodeJSON({"PointModifiedEventTag":PointModifiedEventTag}))
-
-    def onMarkupRemovedEvent(self, obj, event):
-        print "------markup deleting-------"
-        landmarkDescription = self.decodeJSON(obj.GetAttribute("landmarkDescription"))
-        IDs = []
-        for ID, value in landmarkDescription.iteritems():
-            isFound = False
-            for n in range(obj.GetNumberOfMarkups()):
-                markupID = obj.GetNthMarkupID(n)
-                if ID == markupID:
-                    isFound = True
-            if not isFound:
-                IDs.append(ID)
-        for ID in IDs:
-            self.deleteLandmark(obj, landmarkDescription[ID]["landmarkLabel"])
-            landmarkDescription.pop(ID,None)
-        obj.SetAttribute("landmarkDescription",self.encodeJSON(landmarkDescription))
-
-    def addLandmarkToCombox(self, fidList, combobox, markupID):
-        if not fidList:
-            return
-        landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
-        combobox.addItem(landmarkDescription[markupID]["landmarkLabel"])
-
-    def updateAllLandmarkComboBox(self, fidList, markupID):
-        # update of the Combobox that are always updated
-        self.updateLandmarkComboBox(fidList, self.interface.landmarkComboBox, False)
-        self.addLandmarkToCombox(fidList, self.interface.landmarkComboBox1, markupID)
-        self.addLandmarkToCombox(fidList, self.interface.landmarkComboBox2, markupID)
-        #update of the Comboboxes that display the fidcial list just modified
-        for key,value in self.comboboxdict.iteritems():
-            if value is fidList:
-                self.addLandmarkToCombox(fidList, key, markupID)
-
-    def updateLandmarkComboBox(self, fidList, combobox, displayMidPoint = True):
-        combobox.blockSignals(True)
-        combobox.clear()
-        if not fidList:
-            return
-        landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
-        if not fidList:
-            return
-        numOfFid = fidList.GetNumberOfMarkups()
-        if numOfFid > 0:
-            for i in range(0, numOfFid):
-                if displayMidPoint is False:
-                    ID = fidList.GetNthMarkupID(i)
-                    if not landmarkDescription[ID]["midPoint"]["isMidPoint"]:
-                        landmarkLabel = fidList.GetNthMarkupLabel(i)
-                        combobox.addItem(landmarkLabel)
-                else:
-                    landmarkLabel = fidList.GetNthMarkupLabel(i)
-                    combobox.addItem(landmarkLabel)
-        combobox.setCurrentIndex(combobox.count - 1)
-        combobox.blockSignals(False)
-
-
-    def deleteLandmark(self, fidList, label):
-        # update of the Combobox that are always updated
-        self.interface.landmarkComboBox.removeItem(self.interface.landmarkComboBox.findText(label))
-        self.interface.landmarkComboBox1.removeItem(self.interface.landmarkComboBox1.findText(label))
-        self.interface.landmarkComboBox2.removeItem(self.interface.landmarkComboBox2.findText(label))
-        for key,value in self.comboboxdict.iteritems():
-            if value is fidList:
-                key.removeItem(key.findText(label))
-
-    def findIDFromLabel(self, fidList, landmarkLabel):
-        # find the ID of the markupsNode from the label of a landmark!
-        landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
-        for ID, value in landmarkDescription.iteritems():
-            if value["landmarkLabel"] == landmarkLabel:
-                return ID
-        return None
-
-    def getClosestPointIndex(self, fidNode, inputPolyData, landmarkID):
-        landmarkCoord = numpy.zeros(3)
-        landmarkCoord[1] = 42
-        fidNode.GetNthFiducialPosition(landmarkID, landmarkCoord)
-        pointLocator = vtk.vtkPointLocator()
-        pointLocator.SetDataSet(inputPolyData)
-        pointLocator.AutomaticOn()
-        pointLocator.BuildLocator()
-        indexClosestPoint = pointLocator.FindClosestPoint(landmarkCoord)
-        return indexClosestPoint
-
-    def replaceLandmark(self, inputModelPolyData, fidNode, landmarkID, indexClosestPoint):
-        landmarkCoord = [-1, -1, -1]
-        inputModelPolyData.GetPoints().GetPoint(indexClosestPoint, landmarkCoord)
-        print landmarkCoord
-        fidNode.SetNthFiducialPositionFromArray(landmarkID,landmarkCoord)
-
-    def projectOnSurface(self, modelOnProject, fidNode, selectedFidReflID):
-        if selectedFidReflID:
-            markupsIndex = fidNode.GetMarkupIndexByID(selectedFidReflID)
-            indexClosestPoint = self.getClosestPointIndex(fidNode, modelOnProject.GetPolyData(), markupsIndex)
-            self.replaceLandmark(modelOnProject.GetPolyData(), fidNode, markupsIndex, indexClosestPoint)
-            return indexClosestPoint
-
-    def calculateMidPointCoord(self, fidList, landmark1ID, landmark2ID):
-        """Set the midpoint when you know the the mrml nodes"""
-        landmark1Index = fidList.GetMarkupIndexByID(landmark1ID)
-        landmark2Index = fidList.GetMarkupIndexByID(landmark2ID)
-        coord1 = [-1, -1, -1]
-        coord2 = [-1, -1, -1]
-        fidList.GetNthFiducialPosition(landmark1Index, coord1)
-        fidList.GetNthFiducialPosition(landmark2Index, coord2)
-        midCoord = [-1, -1, -1]
-        midCoord[0] = (coord1[0] + coord2[0])/2
-        midCoord[1] = (coord1[1] + coord2[1])/2
-        midCoord[2] = (coord1[2] + coord2[2])/2
-        return midCoord
-
     def removecomponentFromStorage(self, type, element):
         if type == 'angles':
             element.Yaw = None
@@ -1034,6 +580,17 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
             element.SIComponent = None
             element.ThreeDComponent = None
         return element
+
+    def getComboboxesToUpdate(self, fidList, markupID):
+        comboboxesToUpdate = list()
+        if self.DCBIALogic.selectedFidList is fidList:
+            comboboxesToUpdate.append(self.interface.landmarkComboBox1)
+            comboboxesToUpdate.append(self.interface.landmarkComboBox2)
+        #update of the Comboboxes that display the fidcial list just modified
+        for key,value in self.comboboxdict.iteritems():
+            if value is fidList:
+                comboboxesToUpdate.append(key)
+        return comboboxesToUpdate
 
     def defineDistances(self, markupsNode1, landmark1Index, markupsNode2, landmark2Index):
         coord1 = [-1, -1, -1]
@@ -1050,8 +607,8 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
                round(threeDDistance, self.numberOfDecimals)
 
     def addOnDistanceList(self, distanceList, fidLabel1, fidLabel2, fidlist1, fidlist2):
-        fidID1 = self.findIDFromLabel(fidlist1,fidLabel1)
-        fidID2 = self.findIDFromLabel(fidlist2,fidLabel2)
+        fidID1 = self.DCBIALogic.findIDFromLabel(fidlist1,fidLabel1)
+        fidID2 = self.DCBIALogic.findIDFromLabel(fidlist2,fidLabel2)
         landmark1Index = fidlist1.GetMarkupIndexByID(fidID1)
         landmark2Index = fidlist2.GetMarkupIndexByID(fidID2)
         elementToAdd = self.distanceValuesStorage()
@@ -1222,10 +779,10 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
                        fidLabel1A, fidLabel1B, fidlist1A, fidlist1B,
                        fidLabel2A, fidLabel2B, fidlist2A, fidlist2B,
                        PitchState, YawState, RollState):
-        fidID1A = self.findIDFromLabel(fidlist1A,fidLabel1A)
-        fidID1B= self.findIDFromLabel(fidlist1B,fidLabel1B)
-        fidID2A = self.findIDFromLabel(fidlist2A,fidLabel2A)
-        fidID2B = self.findIDFromLabel(fidlist2B,fidLabel2B)
+        fidID1A = self.DCBIALogic.findIDFromLabel(fidlist1A,fidLabel1A)
+        fidID1B= self.DCBIALogic.findIDFromLabel(fidlist1B,fidLabel1B)
+        fidID2A = self.DCBIALogic.findIDFromLabel(fidlist2A,fidLabel2A)
+        fidID2B = self.DCBIALogic.findIDFromLabel(fidlist2B,fidLabel2B)
         landmark1Index = fidlist1A.GetMarkupIndexByID(fidID1A)
         landmark2Index = fidlist1B.GetMarkupIndexByID(fidID1B)
         landmark3Index = fidlist2A.GetMarkupIndexByID(fidID2A)
@@ -1361,13 +918,13 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
                            fidLabelLineA, fidLabelLineB,
                            fidListLineLA, fidListLineLB,
                            fidLabelPoint, fidListPoint):
-        lineLAID = self.findIDFromLabel(fidListLineLA, fidLabelLineA)
+        lineLAID = self.DCBIALogic.findIDFromLabel(fidListLineLA, fidLabelLineA)
         lineLAIndex = fidListLineLA.GetMarkupIndexByID(lineLAID)
-        lineLBID = self.findIDFromLabel(fidListLineLB, fidLabelLineB)
+        lineLBID = self.DCBIALogic.findIDFromLabel(fidListLineLB, fidLabelLineB)
         lineLBIndex = fidListLineLB.GetMarkupIndexByID(lineLBID)
-        PointID = self.findIDFromLabel(fidListPoint, fidLabelPoint)
+        PointID = self.DCBIALogic.findIDFromLabel(fidListPoint, fidLabelPoint)
         PointIndex = fidListPoint.GetMarkupIndexByID(PointID)
-        elementToAdd = self.distanceLinePointStorage()
+        elementToAdd = self.DCBIALogic.distanceLinePointStorage()
         # if this distance has already been computed before -> replace values
         for element in linePointList:
             if element.landmarkALineID == lineLAID and \
@@ -1455,8 +1012,8 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
     def drawLineBetween2Landmark(self, landmark1label, landmark2label, fidList1, fidList2):
         if not fidList1 or not fidList2 or not landmark1label or not landmark2label:
             return
-        landmark1ID = self.findIDFromLabel(fidList1, landmark1label)
-        landmark2ID = self.findIDFromLabel(fidList2, landmark2label)
+        landmark1ID = self.DCBIALogic.findIDFromLabel(fidList1, landmark1label)
+        landmark2ID = self.DCBIALogic.findIDFromLabel(fidList2, landmark2label)
 
         if not fidList1 or not fidList2:
             return None, None
@@ -1596,112 +1153,11 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
         file.writelines(lines)
         file.close()
 
-    def GetConnectedVertices(self, connectedVerticesIDList, polyData, pointID):
-        # Return IDs of all the vertices that compose the first neighbor.
-        cellList = vtk.vtkIdList()
-        connectedVerticesIDList.InsertUniqueId(pointID)
-        # Get cells that vertex 'pointID' belongs to
-        polyData.GetPointCells(pointID, cellList)
-        numberOfIds = cellList.GetNumberOfIds()
-        for i in range(0, numberOfIds):
-            # Get points which compose all cells
-            pointIdList = vtk.vtkIdList()
-            polyData.GetCellPoints(cellList.GetId(i), pointIdList)
-            for j in range(0, pointIdList.GetNumberOfIds()):
-                connectedVerticesIDList.InsertUniqueId(pointIdList.GetId(j))
-        return connectedVerticesIDList
-
-    def addArrayFromIdList(self, connectedIdList, inputModelNode, arrayName):
-        if not inputModelNode:
-            return
-        inputModelNodePolydata = inputModelNode.GetPolyData()
-        pointData = inputModelNodePolydata.GetPointData()
-        numberofIds = connectedIdList.GetNumberOfIds()
-        hasArrayInt = pointData.HasArray(arrayName)
-        if hasArrayInt == 1:  # ROI Array found
-            pointData.RemoveArray(arrayName)
-        arrayToAdd = vtk.vtkDoubleArray()
-        arrayToAdd.SetName(arrayName)
-        for i in range(0, inputModelNodePolydata.GetNumberOfPoints()):
-            arrayToAdd.InsertNextValue(0.0)
-        for i in range(0, numberofIds):
-            arrayToAdd.SetValue(connectedIdList.GetId(i), 1.0)
-        lut = vtk.vtkLookupTable()
-        tableSize = 2
-        lut.SetNumberOfTableValues(tableSize)
-        lut.Build()
-        displayNode = inputModelNode.GetDisplayNode()
-        rgb = displayNode.GetColor()
-        lut.SetTableValue(0, rgb[0], rgb[1], rgb[2], 1)
-        lut.SetTableValue(1, 1.0, 0.0, 0.0, 1)
-        arrayToAdd.SetLookupTable(lut)
-        pointData.AddArray(arrayToAdd)
-        inputModelNodePolydata.Modified()
-        return True
-
-    def displayROI(self, inputModelNode, scalarName):
-        PolyData = inputModelNode.GetPolyData()
-        PolyData.Modified()
-        displayNode = inputModelNode.GetModelDisplayNode()
-        displayNode.SetScalarVisibility(False)
-        disabledModify = displayNode.StartModify()
-        displayNode.SetActiveScalarName(scalarName)
-        displayNode.SetScalarVisibility(True)
-        displayNode.EndModify(disabledModify)
-
-    def findROI(self, fidList):
-        hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
-        connectedModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("connectedModelID"))
-        landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
-        arrayName = fidList.GetAttribute("arrayName")
-        ROIPointListID = vtk.vtkIdList()
-        for key,activeLandmarkState in landmarkDescription.iteritems():
-            tempROIPointListID = vtk.vtkIdList()
-            if activeLandmarkState["ROIradius"] != 0:
-                self.defineNeighbor(tempROIPointListID,
-                                    hardenModel.GetPolyData(),
-                                    activeLandmarkState["projection"]["closestPointIndex"],
-                                    activeLandmarkState["ROIradius"])
-            for j in range(0, tempROIPointListID.GetNumberOfIds()):
-                ROIPointListID.InsertUniqueId(tempROIPointListID.GetId(j))
-        listID = ROIPointListID
-        self.addArrayFromIdList(listID, connectedModel, arrayName)
-        self.displayROI(connectedModel, arrayName)
-        return ROIPointListID
-
-    def warningMessage(self, message):
-        messageBox = ctk.ctkMessageBox()
-        messageBox.setWindowTitle(" /!\ WARNING /!\ ")
-        messageBox.setIcon(messageBox.Warning)
-        messageBox.setText(message)
-        messageBox.setStandardButtons(messageBox.Ok)
-        messageBox.exec_()
-
-    def encodeJSON(self, input):
-        encodedString = json.dumps(input)
-        encodedString = encodedString.replace('\"', '\'')
-        return encodedString
-
-    def decodeJSON(self, input):
-        if input:
-            input = input.replace('\'','\"')
-            return self.byteify(json.loads(input))
-        return None
-
-    def byteify(self, input):
-        if isinstance(input, dict):
-            return {self.byteify(key):self.byteify(value) for key,value in input.iteritems()}
-        elif isinstance(input, list):
-            return [self.byteify(element) for element in input]
-        elif isinstance(input, unicode):
-            return input.encode('utf-8')
-        else:
-            return input
-
     def UpdateLandmarkComboboxA(self, fidListCombobox, landmarkCombobox):
         self.comboboxdict[landmarkCombobox] = fidListCombobox.currentNode()
-        self.updateLandmarkComboBox(fidListCombobox.currentNode(), landmarkCombobox)
+        self.DCBIALogic.updateLandmarkComboBox(fidListCombobox.currentNode(), landmarkCombobox)
         self.interface.UpdateInterface()
+
 
 class Q3DCTest(ScriptedLoadableModuleTest):
 
@@ -1709,6 +1165,7 @@ class Q3DCTest(ScriptedLoadableModuleTest):
         """ Do whatever is needed to reset the state - typically a scene clear will be enough.
             """
         slicer.mrmlScene.Clear(0)
+        self.widget = slicer.modules.Q3DCWidget
 
 
     def runTest(self):
@@ -1728,7 +1185,7 @@ class Q3DCTest(ScriptedLoadableModuleTest):
         self.delayDisplay(' Tests Passed! ')
 
     def test_CalculateDisplacement1(self):
-        logic = Q3DCLogic(slicer.modules.Q3DCWidget)
+        logic = self.widget.logic
         markupsNode1 = slicer.vtkMRMLMarkupsFiducialNode()
         markupsNode1.AddFiducial(-5.331, 51.955, 4.831)
         markupsNode1.AddFiducial(-8.018, 41.429, -52.621)
@@ -1738,7 +1195,7 @@ class Q3DCTest(ScriptedLoadableModuleTest):
         return True
 
     def test_CalculateDisplacement2(self):
-        logic = Q3DCLogic(slicer.modules.Q3DCWidget)
+        logic = self.widget.logic
         markupsNode1 = slicer.vtkMRMLMarkupsFiducialNode()
 
         markupsNode1.AddFiducial(63.90,-46.98, 6.98)
@@ -1839,7 +1296,7 @@ class Q3DCTest(ScriptedLoadableModuleTest):
         q3dcWidget.midPointGroupBox.collapsed = False
         q3dcWidget.landmarkComboBox2.currentIndex = 1
         q3dcWidget.defineMiddlePointButton.clicked()
-        midpointMarkupID = q3dcWidget.logic.findIDFromLabel(movingMarkupsFiducial,"F-4")
+        midpointMarkupID = q3dcWidget.DCBIALogic.findIDFromLabel(movingMarkupsFiducial,"F-4")
         if not midpointMarkupID:
             print ("Did not define a midpoint node")
             return False
