@@ -2,10 +2,8 @@ import os
 from __main__ import vtk, qt, ctk, slicer
 import logging
 import numpy
-import time
 import pickle
 from math import *
-import json
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
 import sys
@@ -72,8 +70,8 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
     def setup(self):
         ScriptedLoadableModuleWidget.setup(self)
         print "-------Angle Planes Widget Setup-------"
-        moduleName = 'AnglePlanes'
-        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
+        self.moduleName = 'AnglePlanes'
+        scriptedModulesPath = eval('slicer.modules.%s.path' % self.moduleName.lower())
         scriptedModulesPath = os.path.dirname(scriptedModulesPath)
 
         libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
@@ -83,7 +81,6 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
         import DCBIALogic
         reload(DCBIALogic)
 
-        self.moduleName = "AnglePlanes"
         self.DCBIALogic = DCBIALogic.DCBIALogic(self)
         self.logic = AnglePlanesLogic(interface=self, DCBIALogic=self.DCBIALogic)
         self.planeControlsId = 0
@@ -95,7 +92,7 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
 
         # UI setup
         loader = qt.QUiLoader()
-        path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
+        path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %self.moduleName)
         qfile = qt.QFile(path)
         qfile.open(qt.QFile.ReadOnly)
         widget = loader.load(qfile, self.parent)
@@ -215,6 +212,7 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
                     markupID = fidList.GetNthMarkupID(n)
                     markupLabel = fidList.GetNthMarkupLabel(n)
                     landmarkDescription[markupID]["landmarkLabel"] = markupLabel
+                print landmarkDescription
                 fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
 
     def UpdateInterface(self):
