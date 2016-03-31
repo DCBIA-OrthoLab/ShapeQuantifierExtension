@@ -32,18 +32,20 @@ class MeshStatisticsWidget(ScriptedLoadableModuleWidget):
     def setup(self):
         ScriptedLoadableModuleWidget.setup(self)
         print "-------Mesh Statistic Widget Setup-------"
-        moduleName = 'MeshStatistics'
-        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
+        self.moduleName = 'MeshStatistics'
+        scriptedModulesPath = eval('slicer.modules.%s.path' % self.moduleName.lower())
         scriptedModulesPath = os.path.dirname(scriptedModulesPath)
 
         libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
-        import DCBIA
-        DCBIA = reload(DCBIA)
+        import DCBIALogic
+        reload(DCBIALogic)
 
         # -------------------------------------------------------------------------------------
+        self.DCBIALogic = DCBIALogic.DCBIALogic(self)
+        self.logic = MeshStatisticsLogic(self, DCBIALogic)
         self.modelList = list()
         self.fieldList = list()
         self.ROIList = list()
@@ -53,7 +55,7 @@ class MeshStatisticsWidget(ScriptedLoadableModuleWidget):
                                #                                             key = name of shapes
                                #                                             value = Statistics store()
 
-        self.logic = MeshStatisticsLogic(self)
+
 
         # ---------------------------------------------------------------- #
         # ---------------- Definition of the UI interface ---------------- #
@@ -62,7 +64,7 @@ class MeshStatisticsWidget(ScriptedLoadableModuleWidget):
         # ------------ Loading of the .ui file ---------- #
 
         loader = qt.QUiLoader()
-        path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
+        path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %self.moduleName)
         qfile = qt.QFile(path)
         qfile.open(qt.QFile.ReadOnly)
         widget = loader.load(qfile, self.parent)
@@ -73,19 +75,19 @@ class MeshStatisticsWidget(ScriptedLoadableModuleWidget):
         # ------------------------------------------------------------------------------------
         #                                    SHAPES INPUT
         # ------------------------------------------------------------------------------------
-        self.inputComboBox = self.logic.get("inputComboBox")
+        self.inputComboBox = self.DCBIALogic.get("inputComboBox")
         self.inputComboBox.setMRMLScene(slicer.mrmlScene)
         self.inputComboBox.connect('checkedNodesChanged()', self.onInputComboBoxCheckedNodesChanged)
         # ------------------------------------------------------------------------------------
         #                                  ROI TABLE
         # ------------------------------------------------------------------------------------
-        self.ROIComboBox = self.logic.get("ROIComboBox")
-        self.ROICheckBox = self.logic.get("ROICheckBox")
+        self.ROIComboBox = self.DCBIALogic.get("ROIComboBox")
+        self.ROICheckBox = self.DCBIALogic.get("ROICheckBox")
         self.ROICheckBox.connect('stateChanged(int)', self.onROICheckBoxStateChanged)
         # ------------------------------------------------------------------------------------
         #                                  FIELD TABLE
         # ------------------------------------------------------------------------------------
-        self.tableField = self.logic.get("tableField")
+        self.tableField = self.DCBIALogic.get("tableField")
         self.tableField.setColumnCount(2)
         self.tableField.setMinimumHeight(250)
         self.tableField.setHorizontalHeaderLabels([' ', ' Field Name '])
@@ -95,13 +97,13 @@ class MeshStatisticsWidget(ScriptedLoadableModuleWidget):
         # ------------------------------------------------------------------------------------
         #                                    RUN
         # ------------------------------------------------------------------------------------
-        self.runButton = self.logic.get("runButton")
+        self.runButton = self.DCBIALogic.get("runButton")
         self.runButton.connect('clicked()', self.onRunButton)
 
         # ------------------------------------------------------------------------------------
         #                          Statistics Table - Export
         # ------------------------------------------------------------------------------------
-        self.mainLayout = self.logic.get("mainLayout")
+        self.mainLayout = self.DCBIALogic.get("mainLayout")
         self.tabROI = qt.QTabWidget()
         self.tabROI.setTabPosition(0)
         self.tabROI.adjustSize()
@@ -184,31 +186,12 @@ class MeshStatisticsLogic(ScriptedLoadableModuleLogic):
             self.percentile85 = 0
             self.percentile95 = 0
 
-    def __init__(self, interface=None):
+    def __init__(self, interface=None, DCBIALogic = None):
+        self.DCBIALogic = DCBIALogic
         self.interface = interface
         self.numberOfDecimals = 3
-	system = qt.QLocale().system()
+        system = qt.QLocale().system()
         self.decimalPoint = chr(system.decimalPoint())
-
-    # -------------------------------------------------------- #
-    # ----------- Connection of the User Interface ----------- #
-    # -------------------------------------------------------- #
-
-    # This function will look for an object with the given name in the UI and return it.
-    def get(self, objectName):
-        return self.findWidget(self.interface.widget, objectName)
-
-    # This function will recursively look into all the object of the UI and compare it to
-    # the given name, if it never find it will return "None"
-    def findWidget(self, widget, objectName):
-        if widget.objectName == objectName:
-            return widget
-        else:
-            for w in widget.children():
-                resulting_widget = self.findWidget(w, objectName)
-                if resulting_widget:
-                    return resulting_widget
-            return None
 
     def updateInterface(self, tableField, ROIComboBox, ROIList, modelList, layout):
         tableField.clearContents()
