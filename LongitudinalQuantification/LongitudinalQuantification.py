@@ -1,5 +1,6 @@
 from __main__ import vtk, qt, ctk, slicer
 import os
+import sys
 import logging
 
 # ********************************************** #
@@ -34,11 +35,11 @@ class ExternalModuleTab():
             if hasattr(self.currentModule, 'widget'):
                 self.layout.addWidget(self.currentModule.widget)
                 self.currentModule.widget.show()
-            if hasattr(self.currentModule, 'enter'):
-                self.currentModule.enter()
             else:
                 self.layout.addWidget(self.currentModule.widgetRepresentation())
                 self.currentModule.widgetRepresentation().show()
+            if hasattr(self.currentModule, 'enter'):
+                self.currentModule.enter()
             self.choiceComboBox.setCurrentIndex(self.currentComboboxIndex)
 
     def setCurrentModule(self, module, index):
@@ -84,11 +85,22 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
     # ************************************************ #
 
     def setup(self):
+        slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget.setup(self)
         print "----- Longitudinal Quantification widget setup -----"
+        self.moduleName = 'LongitudinalQuantification'
+        scriptedModulesPath = eval('slicer.modules.%s.path' % self.moduleName.lower())
+        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
+
+        libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
+        sys.path.insert(0, libPath)
+
+        # import the external library that contain the functions comon to all DCBIA modules
+        import DCBIALogic
+        reload(DCBIALogic)
 
         # ------ Initialisation of Longitudinal quantification and its logic ----- #
-        slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget.setup(self)
-        self.logic = LongitudinalQuantificationLogic(self)
+        self.DCBIALogic = DCBIALogic.DCBIALogic(self)
+        self.logic = LongitudinalQuantificationLogic(self, self.DCBIALogic)
 
         # ---------------------------------------------------------------- #
         # ---------------- Definition of the UI interface ---------------- #
@@ -97,11 +109,7 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         # ------------ Loading of the .ui file ---------- #
 
         loader = qt.QUiLoader()
-        moduleName = 'LongitudinalQuantification'
-        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
-        scriptedModulesPath = os.path.dirname(scriptedModulesPath)
-        path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
-
+        path = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %self.moduleName)
         qfile = qt.QFile(path)
         qfile.open(qt.QFile.ReadOnly)
         widget = loader.load(qfile, self.parent)
@@ -110,8 +118,8 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.layout.addWidget(widget)
 
         # ------ Scene Collapsible Button ----- #
-        self.SceneCollapsibleButton = self.logic.get("SceneCollapsibleButton")
-        treeView = self.logic.get("treeView")
+        self.SceneCollapsibleButton = self.DCBIALogic.get("SceneCollapsibleButton")
+        treeView = self.DCBIALogic.get("treeView")
         treeView.setMRMLScene(slicer.app.mrmlScene())
         treeView.sortFilterProxyModel().nodeTypes = ['vtkMRMLModelNode','vtkMRMLMarkupsFiducialNode']
         sceneModel = treeView.sceneModel()
@@ -123,31 +131,31 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         treeViewHeader.setResizeMode(sceneModel.nameColumn,qt.QHeaderView.Stretch)
         treeViewHeader.setResizeMode(sceneModel.colorColumn,qt.QHeaderView.ResizeToContents)
         treeViewHeader.setResizeMode(sceneModel.opacityColumn,qt.QHeaderView.ResizeToContents)
-        self.computeBoxPushButton = self.logic.get("computeBoxPushButton")
+        self.computeBoxPushButton = self.DCBIALogic.get("computeBoxPushButton")
 
         # ------ Step Group Box ----- #
-        self.ModelRadioGroupBox = self.logic.get("ModelRadioGroupBox")
+        self.ModelRadioGroupBox = self.DCBIALogic.get("ModelRadioGroupBox")
         self.ModelRadioGroupBox.hide()
-        self.Model1RadioButton = self.logic.get("Model1RadioButton")
-        self.logic.get("verticalLayout_4").setAlignment(0x84)
-        self.Model2RadioButton = self.logic.get("Model2RadioButton")
-        self.logic.get("verticalLayout_5").setAlignment(0x84)
+        self.Model1RadioButton = self.DCBIALogic.get("Model1RadioButton")
+        self.DCBIALogic.get("verticalLayout_4").setAlignment(0x84)
+        self.Model2RadioButton = self.DCBIALogic.get("Model2RadioButton")
+        self.DCBIALogic.get("verticalLayout_5").setAlignment(0x84)
 
         # ------ Data selection Collapsible Button ----- #
-        self.DataSelectionCollapsibleButton = self.logic.get("DataSelectionCollapsibleButton")
-        self.SingleModelRadioButton = self.logic.get("SingleModelRadioButton")
-        self.TwoModelsRadioButton = self.logic.get("TwoModelsRadioButton")
-        self.logic.get("verticalLayout_6").setAlignment(0x84)
-        self.logic.get("verticalLayout_7").setAlignment(0x84)
-        self.Model1groupBox = self.logic.get("Model1groupBox")
-        self.Model1MRMLNodeComboBox = self.logic.get("Model1MRMLNodeComboBox")
+        self.DataSelectionCollapsibleButton = self.DCBIALogic.get("DataSelectionCollapsibleButton")
+        self.SingleModelRadioButton = self.DCBIALogic.get("SingleModelRadioButton")
+        self.TwoModelsRadioButton = self.DCBIALogic.get("TwoModelsRadioButton")
+        self.DCBIALogic.get("verticalLayout_6").setAlignment(0x84)
+        self.DCBIALogic.get("verticalLayout_7").setAlignment(0x84)
+        self.Model1groupBox = self.DCBIALogic.get("Model1groupBox")
+        self.Model1MRMLNodeComboBox = self.DCBIALogic.get("Model1MRMLNodeComboBox")
         self.Model1MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
-        self.FidList1MRMLNodeComboBox = self.logic.get("FidList1MRMLNodeComboBox")
+        self.FidList1MRMLNodeComboBox = self.DCBIALogic.get("FidList1MRMLNodeComboBox")
         self.FidList1MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
-        self.Model2groupBox = self.logic.get("Model2groupBox")
-        self.Model2MRMLNodeComboBox = self.logic.get("Model2MRMLNodeComboBox")
+        self.Model2groupBox = self.DCBIALogic.get("Model2groupBox")
+        self.Model2MRMLNodeComboBox = self.DCBIALogic.get("Model2MRMLNodeComboBox")
         self.Model2MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
-        self.FidList2MRMLNodeComboBox = self.logic.get("FidList2MRMLNodeComboBox")
+        self.FidList2MRMLNodeComboBox = self.DCBIALogic.get("FidList2MRMLNodeComboBox")
         self.FidList2MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
 
         self.ExternalModuleTabDict = dict()
@@ -155,9 +163,9 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         listOfTab = ["Preprocessing","Quantification","Analysis"]
         for tab in listOfTab:
             self.ExternalModuleTabDict[tab] = ExternalModuleTab()
-            self.ExternalModuleTabDict[tab].collapsibleButton = self.logic.get(tab + "CollapsibleButton")
-            self.ExternalModuleTabDict[tab].layout = self.logic.get(tab + "Layout")
-            self.ExternalModuleTabDict[tab].choiceComboBox = self.logic.get(tab + "ChoiceComboBox")
+            self.ExternalModuleTabDict[tab].collapsibleButton = self.DCBIALogic.get(tab + "CollapsibleButton")
+            self.ExternalModuleTabDict[tab].layout = self.DCBIALogic.get(tab + "Layout")
+            self.ExternalModuleTabDict[tab].choiceComboBox = self.DCBIALogic.get(tab + "ChoiceComboBox")
 
         # ------------------------------------------------------------------------------ #
         # ---------------- Setup and initialisation of global variables ---------------- #
@@ -404,31 +412,10 @@ class LongitudinalQuantificationLogic(slicer.ScriptedLoadableModule.ScriptedLoad
     # ---------------- Initialisation ---------------- #
     # ************************************************ #
 
-    def __init__(self, interface):
+    def __init__(self, interface, DCBIALogic):
         print "----- Longitudinal Quantification logic init -----"
         self.interface = interface
-
-    # ******************************************* #
-    # ---------------- Algorithm ---------------- #
-    # ******************************************* #
-
-    # ----------- Connection of the User Interface ----------- #
-    # This function will look for an object with the given name in the UI and return it.
-    def get(self, objectName):
-        return self.findWidget(self.interface.widget, objectName)
-
-    # This function will recursively look into all the object of the UI and compare it to
-    # the given name, if it never find it will return "None"
-    def findWidget(self, widget, objectName):
-        if widget.objectName == objectName:
-            return widget
-        else:
-            for w in widget.children():
-                resulting_widget = self.findWidget(w, objectName)
-                if resulting_widget:
-                    return resulting_widget
-            return None
-
+        self.DCBIALogic = DCBIALogic
 
 # ****************************************************************** #
 # **************** Longitudinal Quantification Test **************** #
