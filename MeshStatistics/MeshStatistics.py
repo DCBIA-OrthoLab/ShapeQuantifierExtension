@@ -133,10 +133,23 @@ class MeshStatisticsWidget(ScriptedLoadableModuleWidget):
         # ------------------------------------------------------------------------------------
         #                                   OBSERVERS
         # ------------------------------------------------------------------------------------
-        def onCloseScene(obj, event):
-            # initialize Parameters
-            globals()['MeshStatistics'] = slicer.util.reloadScriptedModule('MeshStatistics')
-        slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, onCloseScene)
+
+        slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, self.onCloseScene)
+
+    def onCloseScene(self, obj, event):
+        # initialize Parameters
+        self.modelList = list()
+        self.fieldList = list()
+        self.ROIList = list()
+        self.ROIDict = dict()
+        self.ROIComboBox.clear()
+        self.tableField.clearContents()
+        self.tableField.setRowCount(0)
+        self.tableField.setRowCount(1)
+        self.tableField.setSpan(0,0,1,2)
+        label = qt.QLabel(' Please select at least a model! ')
+        label.setStyleSheet(' qproperty-alignment: AlignCenter; }')
+        self.tableField.setCellWidget(0, 0, label)
 
     def onInputComboBoxCheckedNodesChanged(self):
         self.modelList = self.inputComboBox.checkedNodes()
