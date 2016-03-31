@@ -40,19 +40,20 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
     def setup(self):
         ScriptedLoadableModuleWidget.setup(self)
         print "-------Easy Clip Widget Setup---------"
-        moduleName = 'EasyClip'
-        scriptedModulesPath = eval('slicer.modules.%s.path' % moduleName.lower())
+        self.moduleName = 'EasyClip'
+        scriptedModulesPath = eval('slicer.modules.%s.path' % self.moduleName.lower())
         scriptedModulesPath = os.path.dirname(scriptedModulesPath)
 
         libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
-        import DCBIA
-        DCBIA = reload(DCBIA)
+        import DCBIALogic
+        reload(DCBIALogic)
 
         # GLOBALS:
-        self.logic = EasyClipLogic(self)
+        self.DCBIALogic = DCBIALogic.DCBIALogic(self)
+        self.logic = EasyClipLogic(self, self.DCBIALogic)
         self.ignoredNodeNames = ('Red Volume Slice', 'Yellow Volume Slice', 'Green Volume Slice')
         self.colorSliceVolumes = dict()
         self.dictionnaryModel = dict()
@@ -64,7 +65,7 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
         # Interface
         #
         loader = qt.QUiLoader()
-        UIpath = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %moduleName)
+        UIpath = os.path.join(scriptedModulesPath, 'Resources', 'UI', '%s.ui' %self.moduleName)
         qfile = qt.QFile(UIpath)
         qfile.open(qt.QFile.ReadOnly)
         widget = loader.load(qfile, self.parent)
@@ -72,22 +73,22 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
         self.widget = widget
         self.layout.addWidget(widget)
         ##--------------------------- Scene --------------------------#
-        self.SceneCollapsibleButton = self.logic.get("SceneCollapsibleButton") # this atribute is usefull for Longitudinal quantification extension
-        treeView = self.logic.get("treeView")
+        self.SceneCollapsibleButton = self.DCBIALogic.get("SceneCollapsibleButton") # this atribute is usefull for Longitudinal quantification extension
+        treeView = self.DCBIALogic.get("treeView")
         treeView.setMRMLScene(slicer.app.mrmlScene())
         treeView.sceneModel().setHorizontalHeaderLabels(["Models"])
         treeView.sortFilterProxyModel().nodeTypes = ['vtkMRMLModelNode']
         treeView.header().setVisible(False)
-        self.autoChangeLayout = self.logic.get("autoChangeLayout")
-        self.computeBox = self.logic.get("computeBox")
+        self.autoChangeLayout = self.DCBIALogic.get("autoChangeLayout")
+        self.computeBox = self.DCBIALogic.get("computeBox")
         self.computeBox.connect('clicked()', self.onComputeBox)
         #--------------------------- Clipping Part --------------------------#
         # CLIPPING BUTTONS
 
-        self.red_plane_box = self.logic.get("red_plane_box")
-        self.radio_red_Neg = self.logic.get("radio_red_Neg")
+        self.red_plane_box = self.DCBIALogic.get("red_plane_box")
+        self.radio_red_Neg = self.DCBIALogic.get("radio_red_Neg")
         self.radio_red_Neg.setIcon(qt.QIcon(":/Icons/RedSpaceNegative.png"))
-        self.radio_red_Pos = self.logic.get("radio_red_Pos")
+        self.radio_red_Pos = self.DCBIALogic.get("radio_red_Pos")
         self.radio_red_Pos.setIcon(qt.QIcon(":/Icons/RedSpacePositive.png"))
         self.red_plane_box.connect('clicked(bool)', lambda: self.logic.onCheckBoxClicked('Red',
                                                                                          self.red_plane_box,
@@ -104,10 +105,10 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
                                                                                   self.red_plane_box.isChecked(),
                                                                                   self.radio_red_Neg.isChecked(),
                                                                                   self.radio_red_Pos.isChecked()))
-        self.yellow_plane_box = self.logic.get("yellow_plane_box")
-        self.radio_yellow_Neg= self.logic.get("radio_yellow_Neg")
+        self.yellow_plane_box = self.DCBIALogic.get("yellow_plane_box")
+        self.radio_yellow_Neg= self.DCBIALogic.get("radio_yellow_Neg")
         self.radio_yellow_Neg.setIcon(qt.QIcon(":/Icons/YellowSpaceNegative.png"))
-        self.radio_yellow_Pos = self.logic.get("radio_yellow_Pos")
+        self.radio_yellow_Pos = self.DCBIALogic.get("radio_yellow_Pos")
         self.radio_yellow_Pos.setIcon(qt.QIcon(":/Icons/YellowSpacePositive.png"))
         self.yellow_plane_box.connect('clicked(bool)', lambda: self.logic.onCheckBoxClicked('Yellow',
                                                                                             self.yellow_plane_box,
@@ -124,10 +125,10 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
                                                                                   self.yellow_plane_box.isChecked(),
                                                                                   self.radio_yellow_Neg.isChecked(),
                                                                                   self.radio_yellow_Pos.isChecked()))
-        self.green_plane_box = self.logic.get("green_plane_box")
-        self.radio_green_Neg= self.logic.get("radio_green_Neg")
+        self.green_plane_box = self.DCBIALogic.get("green_plane_box")
+        self.radio_green_Neg= self.DCBIALogic.get("radio_green_Neg")
         self.radio_green_Neg.setIcon(qt.QIcon(":/Icons/GreenSpaceNegative.png"))
-        self.radio_green_Pos = self.logic.get("radio_green_Pos")
+        self.radio_green_Pos = self.DCBIALogic.get("radio_green_Pos")
         self.radio_green_Pos.setIcon(qt.QIcon(":/Icons/GreenSpacePositive.png"))
         self.green_plane_box.connect('clicked(bool)', lambda: self.logic.onCheckBoxClicked('Green',
                                                                                            self.green_plane_box,
@@ -144,14 +145,14 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
                                                                                   self.green_plane_box.isChecked(),
                                                                                   self.radio_green_Neg.isChecked(),
                                                                                   self.radio_green_Pos.isChecked()))
-        self.ClippingButton = self.logic.get("ClippingButton")
+        self.ClippingButton = self.DCBIALogic.get("ClippingButton")
         self.ClippingButton.connect('clicked()', self.ClippingButtonClicked)
-        self.UndoButton = self.logic.get("UndoButton")
+        self.UndoButton = self.DCBIALogic.get("UndoButton")
         self.UndoButton.connect('clicked()', self.UndoButtonClicked)
         # -------------------------------- PLANES --------------------------------#
-        self.CollapsibleButton3 = self.logic.get("CollapsibleButton3")
-        self.save = self.logic.get("save")
-        self.read = self.logic.get("read")
+        self.CollapsibleButton3 = self.DCBIALogic.get("CollapsibleButton3")
+        self.save = self.DCBIALogic.get("save")
+        self.read = self.DCBIALogic.get("read")
         self.save.connect('clicked(bool)', self.savePlane)
         self.read.connect('clicked(bool)', self.readPlane)
         #-------------------- onCloseScene ----------------------#
@@ -180,13 +181,13 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
         end = list.GetNumberOfItems()
         for i in range(0,end):
             fidList = list.GetItemAsObject(i)
-            landmarkDescription = self.logic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+            landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
             if landmarkDescription:
                 for n in range(fidList.GetNumberOfMarkups()):
                     markupID = fidList.GetNthMarkupID(n)
                     markupLabel = fidList.GetNthMarkupLabel(n)
                     landmarkDescription[markupID]["landmarkLabel"] = markupLabel
-                fidList.SetAttribute("landmarkDescription",self.logic.encodeJSON(landmarkDescription))
+                fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
         self.onComputeBox()
 
         self.logic.onCheckBoxClicked('Red', self.red_plane_box, self.radio_red_Neg)
@@ -254,7 +255,7 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
         bound = [maxValue, -maxValue, maxValue, -maxValue, maxValue, -maxValue]
         for i in positionOfVisibleNodes:
             node = slicer.mrmlScene.GetNthNodeByClass(i, "vtkMRMLModelNode")
-            model = self.logic.createIntermediateHardenModel(node)
+            model = self.DCBIALogic.createIntermediateHardenModel(node)
             polydata = model.GetPolyData()
             if polydata is None or not hasattr(polydata, "GetBounds"):
                 continue
@@ -358,11 +359,6 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
 
 class EasyClipLogic(ScriptedLoadableModuleLogic):
 
-    try:
-        slicer.sys
-    except:
-        import sys
-
     class planeDef(object):
         def __init__(self):
             # Matrix that define each plane
@@ -378,8 +374,9 @@ class EasyClipLogic(ScriptedLoadableModuleLogic):
             # Plane for cliping
             self.vtkPlane = vtk.vtkPlane()
 
-    def __init__(self, interface):
+    def __init__(self, interface, DCBIALogic):
         self.interface = interface
+        self.DCBIALogic = DCBIALogic
         self.ColorNodeCorrespondence = {'Red': 'vtkMRMLSliceNodeRed',
                                         'Yellow': 'vtkMRMLSliceNodeYellow',
                                         'Green': 'vtkMRMLSliceNodeGreen'}
@@ -388,37 +385,6 @@ class EasyClipLogic(ScriptedLoadableModuleLogic):
         self.planeDict = dict()
         for key in self.ColorNodeCorrespondence:
             self.planeDict[self.ColorNodeCorrespondence[key]] = self.planeDef()
-
-    def get(self, objectName):
-        return self.findWidget(self.interface.widget, objectName)
-
-    def findWidget(self, widget, objectName):
-        if widget.objectName == objectName:
-            return widget
-        else:
-            for w in widget.children():
-                resulting_widget = self.findWidget(w, objectName)
-                if resulting_widget:
-                    return resulting_widget
-            return None
-
-    def createIntermediateHardenModel(self, model):
-        hardenModel = slicer.mrmlScene.GetNodesByName("SurfaceRegistration_" + model.GetName() + "_hardenCopy_" + str(
-            slicer.app.applicationPid())).GetItemAsObject(0)
-        if hardenModel is None:
-            hardenModel = slicer.vtkMRMLModelNode()
-        hardenPolyData = vtk.vtkPolyData()
-        hardenPolyData.DeepCopy(model.GetPolyData())
-        hardenModel.SetAndObservePolyData(hardenPolyData)
-        hardenModel.SetName(
-            "SurfaceRegistration_" + model.GetName() + "_hardenCopy_" + str(slicer.app.applicationPid()))
-        if model.GetParentTransformNode():
-            hardenModel.SetAndObserveTransformNodeID(model.GetParentTransformNode().GetID())
-        hardenModel.HideFromEditorsOn()
-        slicer.mrmlScene.AddNode(hardenModel)
-        logic = slicer.vtkSlicerTransformLogic()
-        logic.hardenTransform(hardenModel)
-        return hardenModel
 
     def onCheckBoxClicked(self, colorPlane, checkBox, radioButton ):
         slice = slicer.util.getNode(self.ColorNodeCorrespondence[colorPlane])
@@ -515,7 +481,7 @@ class EasyClipLogic(ScriptedLoadableModuleLogic):
         landmarkDescriptioncopy = fidList.GetAttribute("landmarkDescription")
         fidList.SetAttribute("connectedModelID", None)
         fidList.SetAttribute("hardenModelID", None)
-        landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         for n in range(fidList.GetNumberOfMarkups()):
             markupID = fidList.GetNthMarkupID(n)
             landmarkDescription[markupID]["projection"]["isProjected"] = False
@@ -554,30 +520,10 @@ class EasyClipLogic(ScriptedLoadableModuleLogic):
                         matNode.SetElement(col, row, matList[col][row])
             fileObj.close()
 
-    def encodeJSON(self, input):
-        encodedString = json.dumps(input)
-        encodedString = encodedString.replace('\"', '\'')
-        return encodedString
-
-    def decodeJSON(self, input):
-        if input:
-            input = input.replace('\'','\"')
-            return self.byteify(json.loads(input))
-        return None
-
-    def byteify(self, input):
-        if isinstance(input, dict):
-            return {self.byteify(key):self.byteify(value) for key,value in input.iteritems()}
-        elif isinstance(input, list):
-            return [self.byteify(element) for element in input]
-        elif isinstance(input, unicode):
-            return input.encode('utf-8')
-        else:
-            return input
-
 class EasyClipTest(ScriptedLoadableModuleTest):
     def setUp(self):
         # reset the state - clear scene
+        self.widget = slicer.modules.EasyClipWidget
         slicer.mrmlScene.Clear(0)
 
     def runTest(self):
@@ -649,9 +595,8 @@ class EasyClipTest(ScriptedLoadableModuleTest):
 
         self.delayDisplay('planes are placed!')
 
-        logic = EasyClipLogic(slicer.modules.EasyClipWidget)
-        logic.getCoord()
-        logic.clipping()
+        self.widget.logic.getCoord()
+        self.widget.logic.clipping()
 
         self.delayDisplay('Test passed!')
 
