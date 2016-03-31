@@ -512,7 +512,9 @@ class DCBIALogic():
         tableSize = 2
         lut.SetNumberOfTableValues(tableSize)
         lut.Build()
-        displayNode = inputModelNode.GetDisplayNode()
+        ID = inputModelNode.GetDisplayNodeID()
+        slicer.app.mrmlScene().GetNodeByID(ID)
+        displayNode = slicer.app.mrmlScene().GetNodeByID(ID)
         rgb = displayNode.GetColor()
         lut.SetTableValue(0, rgb[0], rgb[1], rgb[2], 1)
         lut.SetTableValue(1, 1.0, 0.0, 0.0, 1)

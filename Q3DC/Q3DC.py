@@ -513,8 +513,6 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
     def __init__(self, interface, DCBIALogic):
         self.interface = interface
         self.DCBIALogic = DCBIALogic
-        self.selectedModel = None
-        self.selectedFidList = None
         self.numberOfDecimals = 3
         system = qt.QLocale().system()
         self.decimalPoint = chr(system.decimalPoint())
