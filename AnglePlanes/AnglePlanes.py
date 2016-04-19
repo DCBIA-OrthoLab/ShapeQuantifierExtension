@@ -74,15 +74,15 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
         scriptedModulesPath = eval('slicer.modules.%s.path' % self.moduleName.lower())
         scriptedModulesPath = os.path.dirname(scriptedModulesPath)
 
-        libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
+        libPath = os.path.join(scriptedModulesPath)
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
-        import DCBIALogic
-        reload(DCBIALogic)
+        import LongitudinalQuantificationCore
+        reload(LongitudinalQuantificationCore)
 
-        self.DCBIALogic = DCBIALogic.DCBIALogic(self)
-        self.logic = AnglePlanesLogic(interface=self, DCBIALogic=self.DCBIALogic)
+        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore.LongitudinalQuantificationCore(interface = self)
+        self.logic = AnglePlanesLogic(interface=self, LongitudinalQuantificationCore=self.LongitudinalQuantificationCore)
         self.planeControlsId = 0
         self.planeControlsDictionary = {}
         self.planeCollection = vtk.vtkPlaneCollection()
@@ -101,43 +101,43 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
         self.layout.addWidget(widget)
 
         #--------------------------- Scene --------------------------#
-        self.SceneCollapsibleButton = self.DCBIALogic.get("SceneCollapsibleButton") # this atribute is usefull for Longitudinal quantification extension
-        treeView = self.DCBIALogic.get("treeView")
+        self.SceneCollapsibleButton = self.LongitudinalQuantificationCore.get("SceneCollapsibleButton") # this atribute is usefull for Longitudinal quantification extension
+        treeView = self.LongitudinalQuantificationCore.get("treeView")
         treeView.setMRMLScene(slicer.app.mrmlScene())
         treeView.sceneModel().setHorizontalHeaderLabels(["Models"])
         treeView.sortFilterProxyModel().nodeTypes = ['vtkMRMLModelNode']
         treeView.header().setVisible(False)
-        self.autoChangeLayout = self.DCBIALogic.get("autoChangeLayout")
-        self.computeBox = self.DCBIALogic.get("computeBox")
+        self.autoChangeLayout = self.LongitudinalQuantificationCore.get("autoChangeLayout")
+        self.computeBox = self.LongitudinalQuantificationCore.get("computeBox")
         # -------------------------------Manage planes---------------------------------
-        self.inputModelLabel = self.DCBIALogic.get("inputModelLabel")  # this atribute is usefull for Longitudinal quantification extension
-        self.inputLandmarksLabel = self.DCBIALogic.get("inputLandmarksLabel")  # this atribute is usefull for Longitudinal quantification extension
-        self.CollapsibleButton = self.DCBIALogic.get("CollapsibleButton")
-        self.managePlanesFormLayout = self.DCBIALogic.get("managePlanesFormLayout")
-        self.inputModelSelector = self.DCBIALogic.get("inputModelSelector")
+        self.inputModelLabel = self.LongitudinalQuantificationCore.get("inputModelLabel")  # this atribute is usefull for Longitudinal quantification extension
+        self.inputLandmarksLabel = self.LongitudinalQuantificationCore.get("inputLandmarksLabel")  # this atribute is usefull for Longitudinal quantification extension
+        self.CollapsibleButton = self.LongitudinalQuantificationCore.get("CollapsibleButton")
+        self.managePlanesFormLayout = self.LongitudinalQuantificationCore.get("managePlanesFormLayout")
+        self.inputModelSelector = self.LongitudinalQuantificationCore.get("inputModelSelector")
         self.inputModelSelector.setMRMLScene(slicer.mrmlScene)
-        self.inputLandmarksSelector = self.DCBIALogic.get("inputLandmarksSelector")
+        self.inputLandmarksSelector = self.LongitudinalQuantificationCore.get("inputLandmarksSelector")
         self.inputLandmarksSelector.setMRMLScene(slicer.mrmlScene)
         self.inputLandmarksSelector.setEnabled(False) # The "enable" property seems to not be imported from the .ui
-        self.loadLandmarksOnSurfacCheckBox = self.DCBIALogic.get("loadLandmarksOnSurfacCheckBox")
-        self.addPlaneButton = self.DCBIALogic.get("addPlaneButton")
-        self.landmarkComboBox = self.DCBIALogic.get("landmarkComboBox")
-        self.surfaceDeplacementCheckBox = self.DCBIALogic.get("surfaceDeplacementCheckBox")
+        self.loadLandmarksOnSurfacCheckBox = self.LongitudinalQuantificationCore.get("loadLandmarksOnSurfacCheckBox")
+        self.addPlaneButton = self.LongitudinalQuantificationCore.get("addPlaneButton")
+        self.landmarkComboBox = self.LongitudinalQuantificationCore.get("landmarkComboBox")
+        self.surfaceDeplacementCheckBox = self.LongitudinalQuantificationCore.get("surfaceDeplacementCheckBox")
         # ----------------- Compute Mid Point -------------
-        self.midPointGroupBox = self.DCBIALogic.get("midPointGroupBox")
-        self.selectPlaneForMidPoint = self.DCBIALogic.get("selectPlaneForMidPoint")
-        self.landmarkComboBox1MidPoint = self.DCBIALogic.get("landmarkComboBox1MidPoint")
-        self.landmarkComboBox2MidPoint = self.DCBIALogic.get("landmarkComboBox2MidPoint")
-        self.midPointOnSurfaceCheckBox = self.DCBIALogic.get("midPointOnSurfaceCheckBox")
-        self.defineMiddlePointButton = self.DCBIALogic.get("defineMiddlePointButton")
+        self.midPointGroupBox = self.LongitudinalQuantificationCore.get("midPointGroupBox")
+        self.selectPlaneForMidPoint = self.LongitudinalQuantificationCore.get("selectPlaneForMidPoint")
+        self.landmarkComboBox1MidPoint = self.LongitudinalQuantificationCore.get("landmarkComboBox1MidPoint")
+        self.landmarkComboBox2MidPoint = self.LongitudinalQuantificationCore.get("landmarkComboBox2MidPoint")
+        self.midPointOnSurfaceCheckBox = self.LongitudinalQuantificationCore.get("midPointOnSurfaceCheckBox")
+        self.defineMiddlePointButton = self.LongitudinalQuantificationCore.get("defineMiddlePointButton")
         # -------- Choose planes ------------
-        self.CollapsibleButtonPlane = self.DCBIALogic.get("CollapsibleButtonPlane")
-        self.planeComboBox1 = self.DCBIALogic.get("planeComboBox1")
-        self.planeComboBox2 = self.DCBIALogic.get("planeComboBox2")
+        self.CollapsibleButtonPlane = self.LongitudinalQuantificationCore.get("CollapsibleButtonPlane")
+        self.planeComboBox1 = self.LongitudinalQuantificationCore.get("planeComboBox1")
+        self.planeComboBox2 = self.LongitudinalQuantificationCore.get("planeComboBox2")
         # -------- Calculate angles between planes ------------
-        self.CollapsibleButton2 = self.DCBIALogic.get("CollapsibleButton2")
-        self.results = self.DCBIALogic.get("results")
-        self.tableResult = self.DCBIALogic.get("tableResult")
+        self.CollapsibleButton2 = self.LongitudinalQuantificationCore.get("CollapsibleButton2")
+        self.results = self.LongitudinalQuantificationCore.get("results")
+        self.tableResult = self.LongitudinalQuantificationCore.get("tableResult")
         self.getAngle_RL = qt.QLabel("0")
         self.getAngle_RL.setStyleSheet('QLabel{qproperty-alignment:AlignCenter;}')
         self.getAngle_SI = qt.QLabel("0")
@@ -158,9 +158,9 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
         self.tableResult.setCellWidget(2, 0, self.getAngle_AP)
         self.tableResult.setCellWidget(2, 1, self.getAngle_AP_comp)
         # -------------------------------- PLANES --------------------------------#
-        self.CollapsibleButton3 = self.DCBIALogic.get("CollapsibleButton3")
-        self.save = self.DCBIALogic.get("save")
-        self.read = self.DCBIALogic.get("read")
+        self.CollapsibleButton3 = self.LongitudinalQuantificationCore.get("CollapsibleButton3")
+        self.save = self.LongitudinalQuantificationCore.get("save")
+        self.read = self.LongitudinalQuantificationCore.get("read")
         #-------------------------------- CONNECTIONS --------------------------------#
         self.computeBox.connect('clicked()', self.onComputeBox)
         self.inputModelSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onModelChanged)
@@ -206,40 +206,40 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
         end = list.GetNumberOfItems()
         for i in range(0,end):
             fidList = list.GetItemAsObject(i)
-            landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+            landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
             if landmarkDescription:
                 for n in range(fidList.GetNumberOfMarkups()):
                     markupID = fidList.GetNthMarkupID(n)
                     markupLabel = fidList.GetNthMarkupLabel(n)
                     landmarkDescription[markupID]["landmarkLabel"] = markupLabel
                 print landmarkDescription
-                fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
+                fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
 
     def UpdateInterface(self):
-        self.DCBIALogic.UpdateThreeDView(self.landmarkComboBox.currentText)
+        self.LongitudinalQuantificationCore.UpdateThreeDView(self.landmarkComboBox.currentText)
 
     def onModelChanged(self):
         print "-------Model Changed--------"
-        if self.DCBIALogic.selectedModel:
-            Model = self.DCBIALogic.selectedModel
+        if self.LongitudinalQuantificationCore.selectedModel:
+            Model = self.LongitudinalQuantificationCore.selectedModel
             try:
-                Model.RemoveObserver(self.DCBIALogic.decodeJSON(self.DCBIALogic.selectedModel.GetAttribute("modelModifieTagEvent")))
+                Model.RemoveObserver(self.LongitudinalQuantificationCore.decodeJSON(self.LongitudinalQuantificationCore.selectedModel.GetAttribute("modelModifieTagEvent")))
             except:
                 pass
-        self.DCBIALogic.selectedModel = self.inputModelSelector.currentNode()
-        self.DCBIALogic.ModelChanged(self.inputModelSelector, self.inputLandmarksSelector)
+        self.LongitudinalQuantificationCore.selectedModel = self.inputModelSelector.currentNode()
+        self.LongitudinalQuantificationCore.ModelChanged(self.inputModelSelector, self.inputLandmarksSelector)
         self.inputLandmarksSelector.setCurrentNode(None)
         self.addPlaneButton.setEnabled(False)
 
     def onLandmarksChanged(self):
         print "-------Landmarks Changed--------"
         if self.inputModelSelector.currentNode():
-            self.DCBIALogic.FidList = self.inputLandmarksSelector.currentNode()
-            self.DCBIALogic.selectedFidList = self.inputLandmarksSelector.currentNode()
-            self.DCBIALogic.selectedModel = self.inputModelSelector.currentNode()
+            self.LongitudinalQuantificationCore.FidList = self.inputLandmarksSelector.currentNode()
+            self.LongitudinalQuantificationCore.selectedFidList = self.inputLandmarksSelector.currentNode()
+            self.LongitudinalQuantificationCore.selectedModel = self.inputModelSelector.currentNode()
             if self.inputLandmarksSelector.currentNode():
                 onSurface = self.loadLandmarksOnSurfacCheckBox.isChecked()
-                self.DCBIALogic.connectLandmarks(self.inputModelSelector,
+                self.LongitudinalQuantificationCore.connectLandmarks(self.inputModelSelector,
                                       self.inputLandmarksSelector,
                                       onSurface)
                 self.addPlaneButton.setEnabled(True)
@@ -248,25 +248,25 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
                 self.landmarkComboBox.clear()
 
     def onSurfaceDeplacementStateChanged(self):
-        activeInput = self.DCBIALogic.selectedModel
+        activeInput = self.LongitudinalQuantificationCore.selectedModel
         if not activeInput:
             return
-        fidList = self.DCBIALogic.selectedFidList
+        fidList = self.LongitudinalQuantificationCore.selectedFidList
         if not fidList:
             return
-        selectedFidReflID = self.DCBIALogic.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
+        selectedFidReflID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
         isOnSurface = self.surfaceDeplacementCheckBox.isChecked()
-        landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         if isOnSurface:
             hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
             landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = True
             landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] =\
-                self.DCBIALogic.projectOnSurface(hardenModel, fidList, selectedFidReflID)
+                self.LongitudinalQuantificationCore.projectOnSurface(hardenModel, fidList, selectedFidReflID)
         else:
             landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = False
             landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] = None
             landmarkDescription[selectedFidReflID]["ROIradius"] = 0
-        fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
+        fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
 
     def onChangeMiddlePointFiducialNode(self):
         key = self.selectPlaneForMidPoint.currentText
@@ -274,8 +274,8 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
             return
         plane = self.planeControlsDictionary[key]
         fidList = plane.fidlist
-        self.DCBIALogic.updateLandmarkComboBox(fidList, self.landmarkComboBox1MidPoint)
-        self.DCBIALogic.updateLandmarkComboBox(fidList, self.landmarkComboBox2MidPoint)
+        self.LongitudinalQuantificationCore.updateLandmarkComboBox(fidList, self.landmarkComboBox1MidPoint)
+        self.LongitudinalQuantificationCore.updateLandmarkComboBox(fidList, self.landmarkComboBox2MidPoint)
 
     def onChangeModelDisplay(self, obj, event):
         self.updateOnSurfaceCheckBoxes()
@@ -368,7 +368,7 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
         bound = [maxValue, -maxValue, maxValue, -maxValue, maxValue, -maxValue]
         for i in positionOfVisibleNodes:
             node = slicer.mrmlScene.GetNthNodeByClass(i, "vtkMRMLModelNode")
-            model = self.DCBIALogic.createIntermediateHardenModel(node)
+            model = self.LongitudinalQuantificationCore.createIntermediateHardenModel(node)
             polydata = model.GetPolyData()
             if polydata is None or not hasattr(polydata, "GetBounds"):
                 continue
@@ -477,14 +477,14 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
         plane = self.planeControlsDictionary[key]
         fidList = plane.fidlist
         if not fidList:
-            self.DCBIALogic.warningMessage("Fiducial list problem.")
-        landmark1ID = self.DCBIALogic.findIDFromLabel(fidList,self.landmarkComboBox1MidPoint.currentText)
-        landmark2ID = self.DCBIALogic.findIDFromLabel(fidList,self.landmarkComboBox2MidPoint.currentText)
-        coord = self.DCBIALogic.calculateMidPointCoord(fidList, landmark1ID, landmark2ID)
+            self.LongitudinalQuantificationCore.warningMessage("Fiducial list problem.")
+        landmark1ID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList,self.landmarkComboBox1MidPoint.currentText)
+        landmark2ID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList,self.landmarkComboBox2MidPoint.currentText)
+        coord = self.LongitudinalQuantificationCore.calculateMidPointCoord(fidList, landmark1ID, landmark2ID)
         fidList.AddFiducial(coord[0],coord[1],coord[2])
         fidList.SetNthFiducialSelected(fidList.GetNumberOfMarkups() - 1, False)
         # update of the data structure
-        landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         numOfMarkups = fidList.GetNumberOfMarkups()
         markupID = fidList.GetNthMarkupID(numOfMarkups - 1)
         landmarkDescription[landmark1ID]["midPoint"]["definedByThisMarkup"].append(markupID)
@@ -498,12 +498,12 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
             landmarkDescription[markupID]["projection"]["isProjected"] = True
             hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
             landmarkDescription[markupID]["projection"]["closestPointIndex"] = \
-                self.DCBIALogic.projectOnSurface(hardenModel, fidList, markupID)
+                self.LongitudinalQuantificationCore.projectOnSurface(hardenModel, fidList, markupID)
         else:
             landmarkDescription[markupID]["projection"]["isProjected"] = False
-        fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
-        self.DCBIALogic.interface.UpdateInterface()
-        self.DCBIALogic.updateLandmarkComboBox(fidList, self.landmarkComboBox, False)
+        fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
+        self.LongitudinalQuantificationCore.interface.UpdateInterface()
+        self.LongitudinalQuantificationCore.updateLandmarkComboBox(fidList, self.landmarkComboBox, False)
         fidList.SetNthFiducialPositionFromArray(numOfMarkups - 1, coord)
 
     def onCloseScene(self, obj, event):
@@ -641,16 +641,16 @@ class AnglePlanesWidgetPlaneControl(qt.QFrame):
         self.widget = widget
         # self.anglePlanes.layout.addWidget(widget)
 
-        self.planeLabel = self.anglePlanes.DCBIALogic.findWidget(self.widget, "planeLabel")
+        self.planeLabel = self.anglePlanes.LongitudinalQuantificationCore.findWidget(self.widget, "planeLabel")
         self.planeLabel.setText('Plane ' + str(id) + ":")
-        self.addFiducialButton = self.anglePlanes.DCBIALogic.findWidget(self.widget, "addFiducialButton")
-        self.landmark1ComboBox = self.anglePlanes.DCBIALogic.findWidget(self.widget, "landmark1ComboBox")
-        self.landmark2ComboBox = self.anglePlanes.DCBIALogic.findWidget(self.widget, "landmark2ComboBox")
-        self.landmark3ComboBox = self.anglePlanes.DCBIALogic.findWidget(self.widget, "landmark3ComboBox")
-        self.slideOpacity = self.anglePlanes.DCBIALogic.findWidget(self.widget, "slideOpacity")
-        self.AdaptToBoundingBoxCheckBox = self.anglePlanes.DCBIALogic.findWidget(self.widget, "AdaptToBoundingBoxCheckBox")
-        self.HidePlaneCheckBox = self.anglePlanes.DCBIALogic.findWidget(self.widget, "HidePlaneCheckBox")
-        self.removePlaneButton = self.anglePlanes.DCBIALogic.findWidget(self.widget, "removePlaneButton")
+        self.addFiducialButton = self.anglePlanes.LongitudinalQuantificationCore.findWidget(self.widget, "addFiducialButton")
+        self.landmark1ComboBox = self.anglePlanes.LongitudinalQuantificationCore.findWidget(self.widget, "landmark1ComboBox")
+        self.landmark2ComboBox = self.anglePlanes.LongitudinalQuantificationCore.findWidget(self.widget, "landmark2ComboBox")
+        self.landmark3ComboBox = self.anglePlanes.LongitudinalQuantificationCore.findWidget(self.widget, "landmark3ComboBox")
+        self.slideOpacity = self.anglePlanes.LongitudinalQuantificationCore.findWidget(self.widget, "slideOpacity")
+        self.AdaptToBoundingBoxCheckBox = self.anglePlanes.LongitudinalQuantificationCore.findWidget(self.widget, "AdaptToBoundingBoxCheckBox")
+        self.HidePlaneCheckBox = self.anglePlanes.LongitudinalQuantificationCore.findWidget(self.widget, "HidePlaneCheckBox")
+        self.removePlaneButton = self.anglePlanes.LongitudinalQuantificationCore.findWidget(self.widget, "removePlaneButton")
         # connections
         self.addFiducialButton.connect('clicked()', self.addLandMarkClicked)
         self.landmark1ComboBox.connect('currentIndexChanged(QString)', self.placePlaneClicked)
@@ -662,15 +662,15 @@ class AnglePlanesWidgetPlaneControl(qt.QFrame):
         self.HidePlaneCheckBox.connect('stateChanged(int)', self.update)
         self.removePlaneButton.connect('clicked(bool)', self.onRemove)
         # fiducial list for the plane
-        self.anglePlanes.DCBIALogic.updateLandmarkComboBox(self.fidlist, self.landmark1ComboBox)
-        self.anglePlanes.DCBIALogic.updateLandmarkComboBox(self.fidlist, self.landmark2ComboBox)
-        self.anglePlanes.DCBIALogic.updateLandmarkComboBox(self.fidlist, self.landmark3ComboBox)
+        self.anglePlanes.LongitudinalQuantificationCore.updateLandmarkComboBox(self.fidlist, self.landmark1ComboBox)
+        self.anglePlanes.LongitudinalQuantificationCore.updateLandmarkComboBox(self.fidlist, self.landmark2ComboBox)
+        self.anglePlanes.LongitudinalQuantificationCore.updateLandmarkComboBox(self.fidlist, self.landmark3ComboBox)
 
 
     def PlaneIsDefined(self):
-        landmark1 = self.anglePlanes.DCBIALogic.findIDFromLabel(self.fidlist, self.landmark1ComboBox.currentText)
-        landmark2 = self.anglePlanes.DCBIALogic.findIDFromLabel(self.fidlist, self.landmark2ComboBox.currentText)
-        landmark3 = self.anglePlanes.DCBIALogic.findIDFromLabel(self.fidlist, self.landmark3ComboBox.currentText)
+        landmark1 = self.anglePlanes.LongitudinalQuantificationCore.findIDFromLabel(self.fidlist, self.landmark1ComboBox.currentText)
+        landmark2 = self.anglePlanes.LongitudinalQuantificationCore.findIDFromLabel(self.fidlist, self.landmark2ComboBox.currentText)
+        landmark3 = self.anglePlanes.LongitudinalQuantificationCore.findIDFromLabel(self.fidlist, self.landmark3ComboBox.currentText)
         if landmark1 and landmark2 and landmark3:
             if landmark1 != landmark2 \
                     and landmark3 != landmark2 \
@@ -759,12 +759,12 @@ class AnglePlanesLogic(ScriptedLoadableModuleLogic):
     except:
         import sys
 
-    def __init__(self, interface = None, DCBIALogic = None):
+    def __init__(self, interface = None, LongitudinalQuantificationCore = None):
         self.ColorNodeCorrespondence = {'Red': 'vtkMRMLSliceNodeRed',
                                         'Yellow': 'vtkMRMLSliceNodeYellow',
                                         'Green': 'vtkMRMLSliceNodeGreen'}
         self.interface = interface
-        self.DCBIALogic = DCBIALogic
+        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore
 
     def getComboboxesToUpdate(self, fidList, markupID):
         comboboxesToUpdate = list()
@@ -935,9 +935,9 @@ class AnglePlanesLogic(ScriptedLoadableModuleLogic):
         # print "--- planeLandmarks ---"
         # Limit the number of 3 landmarks to define a plane
         # Keep the coordinates of the landmarks
-        landmark1ID = self.DCBIALogic.findIDFromLabel(fidList, Landmark1Label)
-        landmark2ID = self.DCBIALogic.findIDFromLabel(fidList, Landmark2Label)
-        landmark3ID = self.DCBIALogic.findIDFromLabel(fidList, Landmark3Label)
+        landmark1ID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, Landmark1Label)
+        landmark2ID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, Landmark2Label)
+        landmark3ID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, Landmark3Label)
 
         if not (landmark1ID and landmark2ID and landmark3ID):
             # print "landmark not defined"
@@ -1170,11 +1170,11 @@ class AnglePlanesTest(ScriptedLoadableModuleTest):
         widget.addNewPlane()
         plane1 = widget.planeControlsDictionary["Plane 1"]
         movingMarkupsFiducial.AddFiducial(8.08220491, -98.03022892, 93.12060543)
-        widget.DCBIALogic.onPointModifiedEvent(movingMarkupsFiducial,None)
+        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
         movingMarkupsFiducial.AddFiducial(-64.97482242, -26.20270453, 40.0195569)
-        widget.DCBIALogic.onPointModifiedEvent(movingMarkupsFiducial,None)
+        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
         movingMarkupsFiducial.AddFiducial(-81.14900734, -108.26332837, 121.16330592)
-        widget.DCBIALogic.onPointModifiedEvent(movingMarkupsFiducial,None)
+        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
         plane1.landmark1ComboBox.setCurrentIndex(0)
         plane1.landmark2ComboBox.setCurrentIndex(1)
         plane1.landmark3ComboBox.setCurrentIndex(2)
@@ -1188,11 +1188,11 @@ class AnglePlanesTest(ScriptedLoadableModuleTest):
         widget.addNewPlane()
         plane2 = widget.planeControlsDictionary["Plane 2"]
         movingMarkupsFiducial.AddFiducial(-39.70435272, -97.08191652, 91.88711809)
-        widget.DCBIALogic.onPointModifiedEvent(movingMarkupsFiducial,None)
+        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
         movingMarkupsFiducial.AddFiducial(-96.02709079, -18.26063616, 21.47774342)
-        widget.DCBIALogic.onPointModifiedEvent(movingMarkupsFiducial,None)
+        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
         movingMarkupsFiducial.AddFiducial(-127.93278815, -106.45001448, 92.35628815)
-        widget.DCBIALogic.onPointModifiedEvent(movingMarkupsFiducial,None)
+        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
         plane2.landmark1ComboBox.setCurrentIndex(0)
         plane2.landmark2ComboBox.setCurrentIndex(1)
         plane2.landmark3ComboBox.setCurrentIndex(2)

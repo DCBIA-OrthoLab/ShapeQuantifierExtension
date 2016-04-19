@@ -35,12 +35,12 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
-        import DCBIALogic
-        reload(DCBIALogic)
+        import LongitudinalQuantificationCore
+        reload(LongitudinalQuantificationCore)
 
         #reload the logic if there is any change
-        self.DCBIALogic = DCBIALogic.DCBIALogic(self)
-        self.logic = PickAndPaintLogic(interface=self, DCBIALogic=self.DCBIALogic)
+        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore.LongitudinalQuantificationCore(interface = self)
+        self.logic = PickAndPaintLogic(interface=self, LongitudinalQuantificationCore=self.LongitudinalQuantificationCore)
         self.interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
 
         # UI setup
@@ -53,25 +53,25 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         self.widget = widget
         self.layout.addWidget(widget)
 
-        self.inputModelLabel = self.DCBIALogic.get("inputModelLabel")  # this atribute is usefull for Longitudinal quantification extension
-        self.inputLandmarksLabel = self.DCBIALogic.get("inputLandmarksLabel")  # this atribute is usefull for Longitudinal quantification extension
-        self.inputModelSelector = self.DCBIALogic.get("inputModelSelector")
+        self.inputModelLabel = self.LongitudinalQuantificationCore.get("inputModelLabel")  # this atribute is usefull for Longitudinal quantification extension
+        self.inputLandmarksLabel = self.LongitudinalQuantificationCore.get("inputLandmarksLabel")  # this atribute is usefull for Longitudinal quantification extension
+        self.inputModelSelector = self.LongitudinalQuantificationCore.get("inputModelSelector")
         self.inputModelSelector.setMRMLScene(slicer.mrmlScene)
-        self.inputLandmarksSelector = self.DCBIALogic.get("inputLandmarksSelector")
+        self.inputLandmarksSelector = self.LongitudinalQuantificationCore.get("inputLandmarksSelector")
         self.inputLandmarksSelector.setMRMLScene(slicer.mrmlScene)
         self.inputLandmarksSelector.setEnabled(False) # The "enable" property seems to not be imported from the .ui
-        self.loadLandmarksOnSurfacCheckBox = self.DCBIALogic.get("loadLandmarksOnSurfacCheckBox")
-        self.landmarksScaleWidget = self.DCBIALogic.get("landmarksScaleWidget")
-        self.addLandmarksButton = self.DCBIALogic.get("addLandmarksButton")
-        self.surfaceDeplacementCheckBox = self.DCBIALogic.get("surfaceDeplacementCheckBox")
-        self.landmarkComboBox = self.DCBIALogic.get("landmarkComboBox")
-        self.radiusDefinitionWidget = self.DCBIALogic.get("radiusDefinitionWidget")
-        self.cleanerButton = self.DCBIALogic.get("cleanerButton")
-        self.correspondentShapes = self.DCBIALogic.get("correspondentShapes")
-        self.nonCorrespondentShapes = self.DCBIALogic.get("nonCorrespondentShapes")
-        self.propagationInputComboBox = self.DCBIALogic.get("propagationInputComboBox")
+        self.loadLandmarksOnSurfacCheckBox = self.LongitudinalQuantificationCore.get("loadLandmarksOnSurfacCheckBox")
+        self.landmarksScaleWidget = self.LongitudinalQuantificationCore.get("landmarksScaleWidget")
+        self.addLandmarksButton = self.LongitudinalQuantificationCore.get("addLandmarksButton")
+        self.surfaceDeplacementCheckBox = self.LongitudinalQuantificationCore.get("surfaceDeplacementCheckBox")
+        self.landmarkComboBox = self.LongitudinalQuantificationCore.get("landmarkComboBox")
+        self.radiusDefinitionWidget = self.LongitudinalQuantificationCore.get("radiusDefinitionWidget")
+        self.cleanerButton = self.LongitudinalQuantificationCore.get("cleanerButton")
+        self.correspondentShapes = self.LongitudinalQuantificationCore.get("correspondentShapes")
+        self.nonCorrespondentShapes = self.LongitudinalQuantificationCore.get("nonCorrespondentShapes")
+        self.propagationInputComboBox = self.LongitudinalQuantificationCore.get("propagationInputComboBox")
         self.propagationInputComboBox.setMRMLScene(slicer.mrmlScene)
-        self.propagateButton = self.DCBIALogic.get("propagateButton")
+        self.propagateButton = self.LongitudinalQuantificationCore.get("propagateButton")
 
         # ------------------------------------------------------------------------------------
         #                                   CONNECTIONS
@@ -105,13 +105,13 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         end = list.GetNumberOfItems()
         for i in range(0,end):
             fidList = list.GetItemAsObject(i)
-            landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+            landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
             if landmarkDescription:
                 for n in range(fidList.GetNumberOfMarkups()):
                     markupID = fidList.GetNthMarkupID(n)
                     markupLabel = fidList.GetNthMarkupLabel(n)
                     landmarkDescription[markupID]["landmarkLabel"] = markupLabel
-                fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
+                fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
 
     def onCloseScene(self, obj, event):
         list = slicer.mrmlScene.GetNodesByClass("vtkMRMLModelNode")
@@ -123,21 +123,21 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         self.radiusDefinitionWidget.value = 0.0
         self.landmarksScaleWidget.value = 2.0
         self.landmarkComboBox.clear()
-        self.DCBIALogic.selectedFidList = None
-        self.DCBIALogic.selectedModel = None
+        self.LongitudinalQuantificationCore.selectedFidList = None
+        self.LongitudinalQuantificationCore.selectedModel = None
 
     def UpdateInterface(self):
-        if not self.DCBIALogic.selectedModel:
+        if not self.LongitudinalQuantificationCore.selectedModel:
             return
-        activeInput = self.DCBIALogic.selectedModel
-        if not self.DCBIALogic.selectedFidList:
+        activeInput = self.LongitudinalQuantificationCore.selectedModel
+        if not self.LongitudinalQuantificationCore.selectedFidList:
             return
-        fidList = self.DCBIALogic.selectedFidList
-        selectedFidReflID = self.DCBIALogic.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
+        fidList = self.LongitudinalQuantificationCore.selectedFidList
+        selectedFidReflID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
 
         if activeInput:
             # Update values on widgets.
-            landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+            landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
             if landmarkDescription and selectedFidReflID:
                 activeDictLandmarkValue = landmarkDescription[selectedFidReflID]
                 self.radiusDefinitionWidget.value = activeDictLandmarkValue["ROIradius"]
@@ -147,29 +147,29 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
                     self.surfaceDeplacementCheckBox.setChecked(False)
             else:
                 self.radiusDefinitionWidget.value = 0.0
-            self.DCBIALogic.UpdateThreeDView(self.landmarkComboBox.currentText)
+            self.LongitudinalQuantificationCore.UpdateThreeDView(self.landmarkComboBox.currentText)
 
 
     def onModelChanged(self):
         print "-------Model Changed--------"
-        if self.DCBIALogic.selectedModel:
-            Model = self.DCBIALogic.selectedModel
+        if self.LongitudinalQuantificationCore.selectedModel:
+            Model = self.LongitudinalQuantificationCore.selectedModel
             try:
-                Model.RemoveObserver(self.DCBIALogic.decodeJSON(self.DCBIALogic.selectedModel.GetAttribute("modelModifieTagEvent")))
+                Model.RemoveObserver(self.LongitudinalQuantificationCore.decodeJSON(self.LongitudinalQuantificationCore.selectedModel.GetAttribute("modelModifieTagEvent")))
             except:
                 pass
-        self.DCBIALogic.selectedModel = self.inputModelSelector.currentNode()
-        self.DCBIALogic.ModelChanged(self.inputModelSelector, self.inputLandmarksSelector)
+        self.LongitudinalQuantificationCore.selectedModel = self.inputModelSelector.currentNode()
+        self.LongitudinalQuantificationCore.ModelChanged(self.inputModelSelector, self.inputLandmarksSelector)
         self.inputLandmarksSelector.setCurrentNode(None)
 
     def onLandmarksChanged(self):
         print "-------Landmarks Changed--------"
         if self.inputModelSelector.currentNode():
-            self.DCBIALogic.selectedFidList = self.inputLandmarksSelector.currentNode()
-            self.DCBIALogic.selectedModel = self.inputModelSelector.currentNode()
+            self.LongitudinalQuantificationCore.selectedFidList = self.inputLandmarksSelector.currentNode()
+            self.LongitudinalQuantificationCore.selectedModel = self.inputModelSelector.currentNode()
             if self.inputLandmarksSelector.currentNode():
                 onSurface = self.loadLandmarksOnSurfacCheckBox.isChecked()
-                self.DCBIALogic.connectLandmarks(self.inputModelSelector,
+                self.LongitudinalQuantificationCore.connectLandmarks(self.inputModelSelector,
                                       self.inputLandmarksSelector,
                                       onSurface)
             else:
@@ -180,46 +180,46 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         # If no input model selected, the addition of fiducial shouldn't be possible.
         selectionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLSelectionNodeSingleton")
         selectionNode.SetReferenceActivePlaceNodeClassName("vtkMRMLMarkupsFiducialNode")
-        if self.DCBIALogic.selectedModel:
-            if self.DCBIALogic.selectedFidList:
-                selectionNode.SetActivePlaceNodeID(self.DCBIALogic.selectedFidList.GetID())
+        if self.LongitudinalQuantificationCore.selectedModel:
+            if self.LongitudinalQuantificationCore.selectedFidList:
+                selectionNode.SetActivePlaceNodeID(self.LongitudinalQuantificationCore.selectedFidList.GetID())
                 self.interactionNode.SetCurrentInteractionMode(1)
             else:
-                self.DCBIALogic.warningMessage("Please select a fiducial list")
+                self.LongitudinalQuantificationCore.warningMessage("Please select a fiducial list")
         else:
-            self.DCBIALogic.warningMessage("Please select a model")
+            self.LongitudinalQuantificationCore.warningMessage("Please select a model")
 
     def onLandmarksScaleChanged(self):
-        if not self.DCBIALogic.selectedFidList:
-            self.DCBIALogic.warningMessage("Please select a fiducial list")
+        if not self.LongitudinalQuantificationCore.selectedFidList:
+            self.LongitudinalQuantificationCore.warningMessage("Please select a fiducial list")
             return
         print "------------Landmark scaled change-----------"
-        displayFiducialNode = self.DCBIALogic.selectedFidList.GetMarkupsDisplayNode()
+        displayFiducialNode = self.LongitudinalQuantificationCore.selectedFidList.GetMarkupsDisplayNode()
         disabledModify = displayFiducialNode.StartModify()
         displayFiducialNode.SetGlyphScale(self.landmarksScaleWidget.value)
         displayFiducialNode.SetTextScale(self.landmarksScaleWidget.value)
         displayFiducialNode.EndModify(disabledModify)
 
     def onSurfaceDeplacementStateChanged(self):
-        activeInput = self.DCBIALogic.selectedModel
+        activeInput = self.LongitudinalQuantificationCore.selectedModel
         if not activeInput:
             return
-        fidList = self.DCBIALogic.selectedFidList
+        fidList = self.LongitudinalQuantificationCore.selectedFidList
         if not fidList:
             return
-        selectedFidReflID = self.DCBIALogic.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
+        selectedFidReflID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
         isOnSurface = self.surfaceDeplacementCheckBox.isChecked()
-        landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         if isOnSurface:
             hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
             landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = True
             landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] =\
-                self.DCBIALogic.projectOnSurface(hardenModel, fidList, selectedFidReflID)
+                self.LongitudinalQuantificationCore.projectOnSurface(hardenModel, fidList, selectedFidReflID)
         else:
             landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = False
             landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] = None
             landmarkDescription[selectedFidReflID]["ROIradius"] = 0
-        fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
+        fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
 
 
     def onLandmarkComboBoxChanged(self):
@@ -228,12 +228,12 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
 
     def onRadiusValueChanged(self):
         print "--------- ROI radius modification ----------"
-        fidList = self.DCBIALogic.selectedFidList
+        fidList = self.LongitudinalQuantificationCore.selectedFidList
         if not fidList:
             return
-        selectedFidReflID = self.DCBIALogic.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
+        selectedFidReflID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
         if selectedFidReflID:
-            landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+            landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
             activeLandmarkState = landmarkDescription[selectedFidReflID]
             activeLandmarkState["ROIradius"] = self.radiusDefinitionWidget.value
             if not activeLandmarkState["projection"]["isProjected"]:
@@ -241,9 +241,9 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
                 hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
                 landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = True
                 landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] =\
-                    self.DCBIALogic.projectOnSurface(hardenModel, fidList, selectedFidReflID)
-            fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
-            self.DCBIALogic.findROI(fidList)
+                    self.LongitudinalQuantificationCore.projectOnSurface(hardenModel, fidList, selectedFidReflID)
+            fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
+            self.LongitudinalQuantificationCore.findROI(fidList)
 
     def onCleanButton(self):
         messageBox = ctk.ctkMessageBox()
@@ -273,7 +273,7 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         for model in modelToPropList:
             if model.GetID() != self.inputModelSelector.currentNode().GetID():
                 finalList.append(model.GetID())
-        self.inputLandmarksSelector.currentNode().SetAttribute("modelToPropList",self.DCBIALogic.encodeJSON({"modelToPropList":finalList}))
+        self.inputLandmarksSelector.currentNode().SetAttribute("modelToPropList",self.LongitudinalQuantificationCore.encodeJSON({"modelToPropList":finalList}))
 
     def onPropagateButton(self):
         print " ------------------------------------ onPropagateButton -------------------------------------- "
@@ -292,24 +292,24 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
                 modelToPropIDList.append(modelToProp.GetID())
         # verification if the list is not empty
         if len(modelToPropIDList) is 0:
-            self.DCBIALogic.warningMessage("Please select at list one model for propagation")
+            self.LongitudinalQuantificationCore.warningMessage("Please select at list one model for propagation")
             return
 
         # propagation
-        isSourceModelClean = self.DCBIALogic.decodeJSON(model.GetAttribute("isClean"))
-        hardenModel = self.DCBIALogic.createIntermediateHardenModel(model)
+        isSourceModelClean = self.LongitudinalQuantificationCore.decodeJSON(model.GetAttribute("isClean"))
+        hardenModel = self.LongitudinalQuantificationCore.createIntermediateHardenModel(model)
         model.SetAttribute("hardenModelID",hardenModel.GetID())
         arrayName = fidList.GetAttribute("arrayName")
         for modelToPropagateID in modelToPropIDList:
             modelToPropagate = slicer.mrmlScene.GetNodeByID(modelToPropagateID)
-            isModelToPropagateClean = self.DCBIALogic.decodeJSON(modelToPropagate.GetAttribute("isClean"))
+            isModelToPropagateClean = self.LongitudinalQuantificationCore.decodeJSON(modelToPropagate.GetAttribute("isClean"))
 
             if self.correspondentShapes.isChecked() and (isSourceModelClean != isModelToPropagateClean):
-                self.DCBIALogic.warningMessage("caution, some models seams to not be "
+                self.LongitudinalQuantificationCore.warningMessage("caution, some models seams to not be "
                                                "clean wereath while some others "
                                                "are, it could make a bad propagation!")
             self.logic.cleanerAndTriangleFilter(modelToPropagate)
-            hardenModel = self.DCBIALogic.createIntermediateHardenModel(modelToPropagate)
+            hardenModel = self.LongitudinalQuantificationCore.createIntermediateHardenModel(modelToPropagate)
             modelToPropagate.SetAttribute("hardenModelID",hardenModel.GetID())
             if self.correspondentShapes.isChecked():
                 fidList.SetAttribute("typeOfPropagation","correspondentShapes")
@@ -322,8 +322,8 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
 
 
 class PickAndPaintLogic(ScriptedLoadableModuleLogic):
-    def __init__(self, interface, DCBIALogic):
-        self.DCBIALogic = DCBIALogic
+    def __init__(self, interface, LongitudinalQuantificationCore):
+        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore
         self.interface = interface
 
     def cleanerAndTriangleFilter(self, inputModel):
@@ -336,23 +336,23 @@ class PickAndPaintLogic(ScriptedLoadableModuleLogic):
         inputModel.SetAndObservePolyData(triangleFilter.GetOutput())
 
     def cleanMesh(self, selectedLandmark):
-        activeInput = self.DCBIALogic.selectedModel
-        fidList = self.DCBIALogic.selectedFidList
+        activeInput = self.LongitudinalQuantificationCore.selectedModel
+        fidList = self.LongitudinalQuantificationCore.selectedFidList
         hardenModel = slicer.app.mrmlScene().GetNodeByID(activeInput.GetAttribute("hardenModelID"))
         if activeInput:
             # Clean the mesh with vtkCleanPolyData cleaner and vtkTriangleFilter:
             self.cleanerAndTriangleFilter(activeInput)
             self.cleanerAndTriangleFilter(hardenModel)
             # Define the new ROI:
-            selectedLandmarkID = self.DCBIALogic.findIDFromLabel(fidList, selectedLandmark)
+            selectedLandmarkID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, selectedLandmark)
             if selectedLandmarkID:
-                landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+                landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
                 landmarkDescription[selectedLandmarkID]["projection"]["closestPointIndex"] =\
-                    self.DCBIALogic.projectOnSurface(hardenModel, fidList, selectedLandmarkID)
-                fidList.SetAttribute("landmarkDescription",self.DCBIALogic.encodeJSON(landmarkDescription))
-            fidList.SetAttribute("isClean",self.DCBIALogic.encodeJSON({"isClean":True}))
+                    self.LongitudinalQuantificationCore.projectOnSurface(hardenModel, fidList, selectedLandmarkID)
+                fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
+            fidList.SetAttribute("isClean",self.LongitudinalQuantificationCore.encodeJSON({"isClean":True}))
             connectedModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("connectedModelID"))
-            connectedModel.SetAttribute("isClean",self.DCBIALogic.encodeJSON({"isClean":True}))
+            connectedModel.SetAttribute("isClean",self.LongitudinalQuantificationCore.encodeJSON({"isClean":True}))
 
 
     def propagateCorrespondent(self, referenceInputModel, propagatedInputModel, arrayName):
@@ -364,7 +364,7 @@ class PickAndPaintLogic(ScriptedLoadableModuleLogic):
             if propagatedPointData.GetArray(arrayName): # Array already exists
                 propagatedPointData.RemoveArray(arrayName)
             propagatedPointData.AddArray(arrayToPropagate)
-            self.DCBIALogic.displayROI(propagatedInputModel, arrayName)
+            self.LongitudinalQuantificationCore.displayROI(propagatedInputModel, arrayName)
         else:
             print " NO ROI ARRAY FOUND. PLEASE DEFINE ONE BEFORE."
             return
@@ -372,23 +372,23 @@ class PickAndPaintLogic(ScriptedLoadableModuleLogic):
     def propagateNonCorrespondent(self, fidList, modelToPropagate):
         print modelToPropagate.GetAttribute("hardenModelID")
         hardenModel = slicer.app.mrmlScene().GetNodeByID(modelToPropagate.GetAttribute("hardenModelID"))
-        landmarkDescription = self.DCBIALogic.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         arrayName = fidList.GetAttribute("arrayName")
         ROIPointListID = vtk.vtkIdList()
         for key,activeLandmarkState in landmarkDescription.iteritems():
             tempROIPointListID = vtk.vtkIdList()
             markupsIndex = fidList.GetMarkupIndexByID(key)
-            indexClosestPoint = self.DCBIALogic.getClosestPointIndex(fidList,modelToPropagate.GetPolyData(),markupsIndex)
+            indexClosestPoint = self.LongitudinalQuantificationCore.getClosestPointIndex(fidList,modelToPropagate.GetPolyData(),markupsIndex)
             if activeLandmarkState["ROIradius"] != 0:
-                self.DCBIALogic.defineNeighbor(tempROIPointListID,
+                self.LongitudinalQuantificationCore.defineNeighbor(tempROIPointListID,
                                     hardenModel.GetPolyData(),
                                     indexClosestPoint,
                                     activeLandmarkState["ROIradius"])
             for j in range(0, tempROIPointListID.GetNumberOfIds()):
                 ROIPointListID.InsertUniqueId(tempROIPointListID.GetId(j))
         listID = ROIPointListID
-        self.DCBIALogic.addArrayFromIdList(listID, modelToPropagate, arrayName)
-        self.DCBIALogic.displayROI(modelToPropagate, arrayName)
+        self.LongitudinalQuantificationCore.addArrayFromIdList(listID, modelToPropagate, arrayName)
+        self.LongitudinalQuantificationCore.displayROI(modelToPropagate, arrayName)
 
 class PickAndPaintTest(ScriptedLoadableModuleTest):
     def setUp(self):
@@ -422,13 +422,13 @@ class PickAndPaintTest(ScriptedLoadableModuleTest):
         markupsLogic = self.defineMarkupsLogic()
 
 
-        closestPointIndexList.append(self.widget.DCBIALogic.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+        closestPointIndexList.append(self.widget.LongitudinalQuantificationCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
                                                                 polyData,
                                                                 0))
-        closestPointIndexList.append(self.widget.DCBIALogic.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+        closestPointIndexList.append(self.widget.LongitudinalQuantificationCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
                                                                 polyData,
                                                                 1))
-        closestPointIndexList.append(self.widget.DCBIALogic.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+        closestPointIndexList.append(self.widget.LongitudinalQuantificationCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
                                                                 polyData,
                                                                 2))
 
@@ -448,7 +448,7 @@ class PickAndPaintTest(ScriptedLoadableModuleTest):
         closestPointIndexList = [9, 35, 1]
         coord = [-1, -1, -1]
         for i in range(0, slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()).GetNumberOfFiducials() ):
-            self.widget.DCBIALogic.replaceLandmark(polyData, slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+            self.widget.LongitudinalQuantificationCore.replaceLandmark(polyData, slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
                                   i,
                                   closestPointIndexList[i])
             slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()).GetNthFiducialPosition(i, coord)
@@ -473,7 +473,7 @@ class PickAndPaintTest(ScriptedLoadableModuleTest):
 
         for i in range(0, 3):
             inter = vtk.vtkIdList()
-            self.widget.DCBIALogic.defineNeighbor(inter,
+            self.widget.LongitudinalQuantificationCore.defineNeighbor(inter,
                                  polyData,
                                  closestPointIndexList[i],
                                  i + 1)
@@ -495,8 +495,8 @@ class PickAndPaintTest(ScriptedLoadableModuleTest):
         closestPointIndexList = [9, 35, 1]
         for i in range(0, 3):
             inter = vtk.vtkIdList()
-            self.widget.DCBIALogic.defineNeighbor(inter, polyData, closestPointIndexList[i], i + 1)
-            self.widget.DCBIALogic.addArrayFromIdList(inter,
+            self.widget.LongitudinalQuantificationCore.defineNeighbor(inter, polyData, closestPointIndexList[i], i + 1)
+            self.widget.LongitudinalQuantificationCore.addArrayFromIdList(inter,
                                      sphereModel,
                                      'Test_' + str(i + 1))
             if polyData.GetPointData().HasArray('Test_' + str(i + 1)) != 1:

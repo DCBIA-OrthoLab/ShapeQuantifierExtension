@@ -40,12 +40,12 @@ class MeshStatisticsWidget(ScriptedLoadableModuleWidget):
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
-        import DCBIALogic
-        reload(DCBIALogic)
+        import LongitudinalQuantificationCore
+        reload(LongitudinalQuantificationCore)
 
         # -------------------------------------------------------------------------------------
-        self.DCBIALogic = DCBIALogic.DCBIALogic(self)
-        self.logic = MeshStatisticsLogic(self, DCBIALogic)
+        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore.LongitudinalQuantificationCore(interface = self)
+        self.logic = MeshStatisticsLogic(self, LongitudinalQuantificationCore)
         self.modelList = list()
         self.fieldList = list()
         self.ROIList = list()
@@ -75,19 +75,19 @@ class MeshStatisticsWidget(ScriptedLoadableModuleWidget):
         # ------------------------------------------------------------------------------------
         #                                    SHAPES INPUT
         # ------------------------------------------------------------------------------------
-        self.inputComboBox = self.DCBIALogic.get("inputComboBox")
+        self.inputComboBox = self.LongitudinalQuantificationCore.get("inputComboBox")
         self.inputComboBox.setMRMLScene(slicer.mrmlScene)
         self.inputComboBox.connect('checkedNodesChanged()', self.onInputComboBoxCheckedNodesChanged)
         # ------------------------------------------------------------------------------------
         #                                  ROI TABLE
         # ------------------------------------------------------------------------------------
-        self.ROIComboBox = self.DCBIALogic.get("ROIComboBox")
-        self.ROICheckBox = self.DCBIALogic.get("ROICheckBox")
+        self.ROIComboBox = self.LongitudinalQuantificationCore.get("ROIComboBox")
+        self.ROICheckBox = self.LongitudinalQuantificationCore.get("ROICheckBox")
         self.ROICheckBox.connect('stateChanged(int)', self.onROICheckBoxStateChanged)
         # ------------------------------------------------------------------------------------
         #                                  FIELD TABLE
         # ------------------------------------------------------------------------------------
-        self.tableField = self.DCBIALogic.get("tableField")
+        self.tableField = self.LongitudinalQuantificationCore.get("tableField")
         self.tableField.setColumnCount(2)
         self.tableField.setMinimumHeight(250)
         self.tableField.setHorizontalHeaderLabels([' ', ' Field Name '])
@@ -97,13 +97,13 @@ class MeshStatisticsWidget(ScriptedLoadableModuleWidget):
         # ------------------------------------------------------------------------------------
         #                                    RUN
         # ------------------------------------------------------------------------------------
-        self.runButton = self.DCBIALogic.get("runButton")
+        self.runButton = self.LongitudinalQuantificationCore.get("runButton")
         self.runButton.connect('clicked()', self.onRunButton)
 
         # ------------------------------------------------------------------------------------
         #                          Statistics Table - Export
         # ------------------------------------------------------------------------------------
-        self.mainLayout = self.DCBIALogic.get("mainLayout")
+        self.mainLayout = self.LongitudinalQuantificationCore.get("mainLayout")
         self.tabROI = qt.QTabWidget()
         self.tabROI.setTabPosition(0)
         self.tabROI.adjustSize()
@@ -199,8 +199,8 @@ class MeshStatisticsLogic(ScriptedLoadableModuleLogic):
             self.percentile85 = 0
             self.percentile95 = 0
 
-    def __init__(self, interface=None, DCBIALogic = None):
-        self.DCBIALogic = DCBIALogic
+    def __init__(self, interface=None, LongitudinalQuantificationCore = None):
+        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore
         self.interface = interface
         self.numberOfDecimals = 3
         system = qt.QLocale().system()

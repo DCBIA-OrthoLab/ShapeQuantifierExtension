@@ -1,16 +1,37 @@
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
-import numpy, csv, os
+import numpy
 import json
 import time
-import math
 
 #
 # CalculateDisplacement
 #
 
-class DCBIALogic():
-    def __init__(self, interface = None):
+
+
+class LongitudinalQuantificationCore():
+
+    def __init__(self, parent = None, interface = None):
+
+        if parent:
+            parent.title = "LongitudinalQuantificationCore"
+            parent.categories = []
+            parent.dependencies = []
+            parent.contributors = ["Jean-Baptiste Vimort"]
+            parent.helpText = """
+                This is a common library used in the modules of
+                Longitudinal Quantification Extension.
+                """
+            parent.acknowledgementText = """
+                This work was supported by the National
+                Institutes of Dental and Craniofacial Research
+                and Biomedical Imaging and Bioengineering of
+                the National Institutes of Health under Award
+                Number R01DE024450.
+                """
+            self.parent = parent
+
         self.selectedFidList = None
         self.selectedModel = None
         self.interface = interface
@@ -297,7 +318,7 @@ class DCBIALogic():
         obj.SetAttribute("landmarkDescription",self.encodeJSON(landmarkDescription))
         self.updateAllLandmarkComboBox(obj, markupID)
         self.interface.UpdateInterface()
-        self.onPointModifiedEvent(obj,None)
+        qt.QTimer.singleShot(0, lambda : self.onPointModifiedEvent(obj,None))
 
     def updateMidPoint(self, fidList, landmarkID):
         landmarkDescription = self.decodeJSON(fidList.GetAttribute("landmarkDescription"))
