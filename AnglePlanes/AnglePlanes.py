@@ -1125,14 +1125,43 @@ class AnglePlanesTest(ScriptedLoadableModuleTest):
         self.delayDisplay("Download and load datas")
         self.downloaddata()
         self.delayDisplay("Starting the tests")
-        self.assertTrue(self.test_AnglePlanes())
+
+        self.delayDisplay("Test1: test save and load Planes")
+        self.assertTrue(self.test_SaveLoad_Planes())
+
+        self.delayDisplay("Test2: test adding Planes")
+        self.assertTrue(self.test_AddingPlane( "test_sample_LC_T1", "FiducialsT1", "Plane 1",
+                                               [[2.10738791, -4.83934865, 36.13066709],
+                                                [12.2914279, 15.31336608, 32.52167858],
+                                                [18.12651635, 6.39560101, 31.4412528]]))
+        self.assertTrue(self.test_AddingPlane( "test_sample_LC_T2", "FiducialsT2", "Plane 2",
+                                               [[11.72863443, 14.01486727, 32.8596916],
+                                                [7.82101916, 8.1821128, 36.84962826],
+                                                [18.10934698, 6.67499921, 32.57312822]]))
+        self.assertTrue(self.test_AddingPlane( "test_sample_LC_T3", "FiducialsT3", "Plane 3",
+                                               [[19.24090905, 8.41699664, 31.0460558],
+                                                [4.99470106, 4.70245687, 34.3911743],
+                                                [13.82451733, 14.960671, 30.78424719]]))
+
+        self.delayDisplay("Test3: test of the interactions with the planes")
+        self.assertTrue(self.test_interactions())
+
+        self.delayDisplay("Test4: test of angles between planes")
+        self.assertTrue(self.test_AngleResult(4, 5, [158.68, 135.63, 168.65]))
+        self.assertTrue(self.test_AngleResult(6, 5, [169.23, 178.06, 166.27]))
+        self.assertTrue(self.test_AngleResult(5, 4, [10.54, 46.31, 2.38]))
+        self.assertTrue(self.test_AngleResult(1, 5, [19.98, 0.0, 24.44]))
+        self.assertTrue(self.test_AngleResult(2, 3, [0.0, 174.29, 103.09]))
+        self.assertTrue(self.test_AngleResult(3, 4, [99.21, 130.6, 0.0]))
+
         self.delayDisplay('All tests passed!')
 
     def downloaddata(self):
         import urllib
         downloads = (
-            ('http://slicer.kitware.com/midas3/download?items=213632', '01.vtk', slicer.util.loadModel),
-            ('http://slicer.kitware.com/midas3/download?items=213633', '02.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=213632', 'test_sample_LC_T1.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=213633', 'test_sample_LC_T2.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=213633', 'test_sample_LC_T3.vtk', slicer.util.loadModel),
         )
         for url, name, loader in downloads:
             filePath = slicer.app.temporaryPath + '/' + name
@@ -1149,7 +1178,7 @@ class AnglePlanesTest(ScriptedLoadableModuleTest):
         threeDView = threeDWidget.threeDView()
         threeDView.resetFocalPoint()
 
-    def test_AnglePlanes(self):
+    def test_SaveLoad_Planes(self):
 
         widget = slicer.modules.AnglePlanesWidget
 
@@ -1158,76 +1187,65 @@ class AnglePlanesTest(ScriptedLoadableModuleTest):
 
         self.delayDisplay('Loading planes')
         widget.logic.readPlanes("test.p")
+        return True
 
-        self.delayDisplay('Adding planes')
+    def test_AddingPlane(self, ModelName, FidNodeNampe, PlaneName, PlanePointsCoords):
 
+        self.delayDisplay("Adding " + PlaneName + " to " + ModelName)
+
+        widget = slicer.modules.AnglePlanesWidget
         widget.inputModelSelector.setCurrentNode(
-            slicer.mrmlScene.GetNodesByName("01").GetItemAsObject(0))
-        movingMarkupsFiducial = slicer.vtkMRMLMarkupsFiducialNode()
-        movingMarkupsFiducial.SetName("F1")
-        slicer.mrmlScene.AddNode(movingMarkupsFiducial)
-        widget.inputLandmarksSelector.setCurrentNode(movingMarkupsFiducial)
+            slicer.mrmlScene.GetNodesByName(ModelName).GetItemAsObject(0))
+        inputMarkupsFiducial = slicer.vtkMRMLMarkupsFiducialNode()
+        inputMarkupsFiducial.SetName(FidNodeNampe)
+        slicer.mrmlScene.AddNode(inputMarkupsFiducial)
+        widget.inputLandmarksSelector.setCurrentNode(inputMarkupsFiducial)
         widget.addNewPlane()
-        plane1 = widget.planeControlsDictionary["Plane 1"]
-        movingMarkupsFiducial.AddFiducial(8.08220491, -98.03022892, 93.12060543)
-        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
-        movingMarkupsFiducial.AddFiducial(-64.97482242, -26.20270453, 40.0195569)
-        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
-        movingMarkupsFiducial.AddFiducial(-81.14900734, -108.26332837, 121.16330592)
-        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
-        plane1.landmark1ComboBox.setCurrentIndex(0)
-        plane1.landmark2ComboBox.setCurrentIndex(1)
-        plane1.landmark3ComboBox.setCurrentIndex(2)
+        plane = widget.planeControlsDictionary[PlaneName]
+        for point in PlanePointsCoords:
+            inputMarkupsFiducial.AddFiducial(point[0], point[1], point[2])
+            widget.LongitudinalQuantificationCore.onPointModifiedEvent(inputMarkupsFiducial,None)
+        plane.landmark1ComboBox.setCurrentIndex(0)
+        plane.landmark2ComboBox.setCurrentIndex(1)
+        plane.landmark3ComboBox.setCurrentIndex(2)
 
-        widget.inputModelSelector.setCurrentNode(
-            slicer.mrmlScene.GetNodesByName("02").GetItemAsObject(0))
-        movingMarkupsFiducial = slicer.vtkMRMLMarkupsFiducialNode()
-        movingMarkupsFiducial.SetName("F2")
-        slicer.mrmlScene.AddNode(movingMarkupsFiducial)
-        widget.inputLandmarksSelector.setCurrentNode(movingMarkupsFiducial)
-        widget.addNewPlane()
-        plane2 = widget.planeControlsDictionary["Plane 2"]
-        movingMarkupsFiducial.AddFiducial(-39.70435272, -97.08191652, 91.88711809)
-        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
-        movingMarkupsFiducial.AddFiducial(-96.02709079, -18.26063616, 21.47774342)
-        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
-        movingMarkupsFiducial.AddFiducial(-127.93278815, -106.45001448, 92.35628815)
-        widget.LongitudinalQuantificationCore.onPointModifiedEvent(movingMarkupsFiducial,None)
-        plane2.landmark1ComboBox.setCurrentIndex(0)
-        plane2.landmark2ComboBox.setCurrentIndex(1)
-        plane2.landmark3ComboBox.setCurrentIndex(2)
+        return True
 
-        self.delayDisplay('Hide Planes')
-        plane1.HidePlaneCheckBox.setChecked(True)
-        plane2.HidePlaneCheckBox.setChecked(True)
+    def test_AngleResult(self, Plane1Index, Plane2Index, Angles):
 
-        self.delayDisplay('Adapt on bounding box')
-        plane1.HidePlaneCheckBox.setChecked(False)
-        plane2.HidePlaneCheckBox.setChecked(False)
-        plane1.AdaptToBoundingBoxCheckBox.setChecked(True)
-        plane2.AdaptToBoundingBoxCheckBox.setChecked(True)
+        widget = slicer.modules.AnglePlanesWidget
+        widget.planeComboBox1.setCurrentIndex(0)
+        widget.planeComboBox2.setCurrentIndex(0)
+        widget.planeComboBox1.setCurrentIndex(Plane1Index)
+        widget.planeComboBox2.setCurrentIndex(Plane2Index)
 
-        self.delayDisplay('Selecting planes')
-        widget.planeComboBox1.setCurrentIndex(4)
-        widget.planeComboBox2.setCurrentIndex(4)
-
-        self.delayDisplay('Calculating angle')
+        self.delayDisplay("Test angle between " + widget.planeComboBox1.currentText
+                          + " and " + widget.planeComboBox2.currentText)
         widget.angleValue()
 
-        test = widget.logic.angle_degre_RL != 03.55 or widget.logic.angle_degre_RL_comp != 176.45 or\
-               widget.logic.angle_degre_SI != 17.91 or widget.logic.angle_degre_SI_comp != 162.09 or\
-               widget.logic.angle_degre_AP != 16.34 or widget.logic.angle_degre_AP_comp != 163.66
+        test = widget.logic.angle_degre_RL != Angles[0] or\
+               widget.logic.angle_degre_SI != Angles[1] or\
+               widget.logic.angle_degre_AP != Angles[2]
 
-        self.delayDisplay('Testing angles')
         if test:
-
             print "", "Angle", "Complementary"
-            print "R-L-View", widget.logic.angle_degre_RL, widget.logic.angle_degre_RL_comp
-            print "S-I-View", widget.logic.angle_degre_SI, widget.logic.angle_degre_SI_comp
-            print "A-P-View", widget.logic.angle_degre_AP, widget.logic.angle_degre_AP_comp
+            print "R-L-View", widget.logic.angle_degre_RL,widget.logic.angle_degre_RL != Angles[0]
+            print "S-I-View", widget.logic.angle_degre_SI,widget.logic.angle_degre_SI != Angles[1]
+            print "A-P-View", widget.logic.angle_degre_AP,widget.logic.angle_degre_AP != Angles[2]
             self.delayDisplay('Test Failure!')
             return False
 
         else:
-            self.delayDisplay('Test passed!')
             return True
+
+
+    def test_interactions(self):
+
+        widget = slicer.modules.AnglePlanesWidget
+
+        for plane in widget.planeControlsDictionary:
+            widget.planeControlsDictionary[plane].HidePlaneCheckBox.setChecked(True)
+            widget.planeControlsDictionary[plane].HidePlaneCheckBox.setChecked(False)
+            widget.planeControlsDictionary[plane].AdaptToBoundingBoxCheckBox.setChecked(True)
+
+        return True
