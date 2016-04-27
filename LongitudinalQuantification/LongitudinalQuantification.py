@@ -91,7 +91,7 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         scriptedModulesPath = eval('slicer.modules.%s.path' % self.moduleName.lower())
         scriptedModulesPath = os.path.dirname(scriptedModulesPath)
 
-        libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
+        libPath = os.path.join(scriptedModulesPath)
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
@@ -422,38 +422,162 @@ class LongitudinalQuantificationLogic(slicer.ScriptedLoadableModule.ScriptedLoad
 # ****************************************************************** #
 
 class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoadableModuleTest):
-    def __init__(self):
-        print "----- Longitudinal Quantification test init -----"
+
+    # ******************************************************** #
+    # ---------------- Setup / initialisation ---------------- #
+    # ******************************************************** #
 
     def setUp(self):
         print "----- Longitudinal Quantification test setup -----"
         # reset the state - clear scene
+        self.delayDisplay("Clear the scene")
         slicer.mrmlScene.Clear(0)
+
+        self.widget = slicer.modules.LongitudinalQuantificationWidget
+        self.logic = self.widget.logic
+        self.LongitudinalQuantificationCore = self.widget.LongitudinalQuantificationCore
 
     def runTest(self):
         # run all tests needed
-        self.delayDisplay("Clear the scene")
         self.setUp()
-        self.delayDisplay("Download and load datas")
-        self.downloaddata()
 
-    def downloaddata(self):
-        import urllib
-        downloads = (
-            ('http://slicer.kitware.com/midas3/download?items=213632', '01.vtk', slicer.util.loadModel),
-            ('http://slicer.kitware.com/midas3/download?items=213633', '02.vtk', slicer.util.loadModel),
-        )
-        for url, name, loader in downloads:
-            filePath = slicer.app.temporaryPath + '/' + name
-            print filePath
-            if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-                logging.info('Requesting download %s from %s...\n' % (name, url))
-                urllib.urlretrieve(url, filePath)
-            if loader:
-                logging.info('Loading %s...' % (name,))
-                loader(filePath)
+        self.delayDisplay("Starting the test of LongitudinalQuantificationCore")
+        self.TestCore()
 
-        layoutManager = slicer.app.layoutManager()
-        threeDWidget = layoutManager.threeDWidget(0)
-        threeDView = threeDWidget.threeDView()
-        threeDView.resetFocalPoint()
+        self.delayDisplay("Starting the test of AnglePlanes")
+        slicer.modules.AnglePlanesInstance.runTest()
+
+    # ************************************************************************ #
+    # ---------------- Test of LongitudinalQuantificationCore ---------------- #
+    # ************************************************************************ #
+
+    def TestCore(self):
+        self.setUp()
+        self.delayDisplay(' Starting tests ')
+
+        self.delayDisplay(' Test getClosestPointIndex Function ')
+        self.assertTrue(self.testGetClosestPointIndexFunction())
+
+        self.delayDisplay(' Test replaceLandmark Function ')
+        self.assertTrue( self.testReplaceLandmarkFunction() )
+
+        self.delayDisplay(' Test DefineNeighbors Function ')
+        self.assertTrue( self.testDefineNeighborsFunction() )
+
+        self.delayDisplay(' Test addArrayFromIdList Function ')
+        self.assertTrue( self.testAddArrayFromIdListFunction() )
+
+        self.delayDisplay(' Tests Passed! ')
+
+
+    def testGetClosestPointIndexFunction(self):
+        sphereModel = self.defineSphere()
+        slicer.mrmlScene.AddNode(sphereModel)
+        closestPointIndexList = list()
+        polyData = sphereModel.GetPolyData()
+        markupsLogic = self.defineMarkupsLogic()
+
+
+        closestPointIndexList.append(self.LongitudinalQuantificationCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+                                                                polyData,
+                                                                0))
+        closestPointIndexList.append(self.LongitudinalQuantificationCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+                                                                polyData,
+                                                                1))
+        closestPointIndexList.append(self.LongitudinalQuantificationCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+                                                                polyData,
+                                                                2))
+
+        if closestPointIndexList[0] != 9 or closestPointIndexList[1] != 35 or closestPointIndexList[2] != 1:
+            return False
+        return True
+
+    def testReplaceLandmarkFunction(self):
+        print ' Test replaceLandmark Function '
+        sphereModel = self.defineSphere()
+        polyData = sphereModel.GetPolyData()
+        markupsLogic = self.defineMarkupsLogic()
+        listCoordinates = list()
+        listCoordinates.append([55.28383255004883, 55.28383255004883, 62.34897994995117])
+        listCoordinates.append([-68.93781280517578, -68.93781280517578, -22.252094268798828])
+        listCoordinates.append([0.0, 0.0, -100.0])
+        closestPointIndexList = [9, 35, 1]
+        coord = [-1, -1, -1]
+        for i in range(0, slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()).GetNumberOfFiducials() ):
+            self.LongitudinalQuantificationCore.replaceLandmark(polyData, slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+                                  i,
+                                  closestPointIndexList[i])
+            slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()).GetNthFiducialPosition(i, coord)
+            if coord != listCoordinates[i]:
+                print i, ' - Failed '
+                return False
+            else:
+                print i, ' - Passed! '
+        return True
+
+    def testDefineNeighborsFunction(self):
+        sphereModel = self.defineSphere()
+        polyData = sphereModel.GetPolyData()
+        closestPointIndexList = [9, 35, 1]
+        connectedVerticesReferenceList = list()
+        connectedVerticesReferenceList.append([9, 2, 3, 8, 10, 15, 16])
+        connectedVerticesReferenceList.append(
+            [35, 28, 29, 34, 36, 41, 42, 21, 22, 27, 23, 30, 33, 40, 37, 43, 47, 48, 49])
+        connectedVerticesReferenceList.append(
+            [1, 7, 13, 19, 25, 31, 37, 43, 49, 6, 48, 12, 18, 24, 30, 36, 42, 5, 47, 41, 11, 17, 23, 29, 35])
+        connectedVerticesTestedList = list()
+
+        for i in range(0, 3):
+            inter = vtk.vtkIdList()
+            self.LongitudinalQuantificationCore.defineNeighbor(inter,
+                                 polyData,
+                                 closestPointIndexList[i],
+                                 i + 1)
+            connectedVerticesTestedList.append(inter)
+            list1 = list()
+            for j in range(0, connectedVerticesTestedList[i].GetNumberOfIds()):
+                list1.append(int(connectedVerticesTestedList[i].GetId(j)))
+            connectedVerticesTestedList[i] = list1
+            if connectedVerticesTestedList[i] != connectedVerticesReferenceList[i]:
+                print "test ",i ," AddArrayFromIdList: failed"
+                return False
+            else:
+                print "test ",i ," AddArrayFromIdList: succeed"
+        return True
+
+    def testAddArrayFromIdListFunction(self):
+        sphereModel = self.defineSphere()
+        polyData = sphereModel.GetPolyData()
+        closestPointIndexList = [9, 35, 1]
+        for i in range(0, 3):
+            inter = vtk.vtkIdList()
+            self.LongitudinalQuantificationCore.defineNeighbor(inter, polyData, closestPointIndexList[i], i + 1)
+            self.LongitudinalQuantificationCore.addArrayFromIdList(inter,
+                                     sphereModel,
+                                     'Test_' + str(i + 1))
+            if polyData.GetPointData().HasArray('Test_' + str(i + 1)) != 1:
+                print "test ",i ," AddArrayFromIdList: failed"
+                return False
+            else:
+                print "test ",i ," AddArrayFromIdList: succeed"
+        return True
+
+    def defineSphere(self):
+        sphereSource = vtk.vtkSphereSource()
+        sphereSource.SetRadius(100.0)
+        model = slicer.vtkMRMLModelNode()
+        model.SetAndObservePolyData(sphereSource.GetOutput())
+        modelDisplay = slicer.vtkMRMLModelDisplayNode()
+        modelDisplay.SetColor(0.5,0.5,0.5)
+        slicer.mrmlScene.AddNode(modelDisplay)
+        model.SetAndObserveDisplayNodeID(modelDisplay.GetID())
+        modelDisplay.SetInputPolyDataConnection(sphereSource.GetOutputPort())
+        return model
+
+    def defineMarkupsLogic(self):
+        slicer.mrmlScene.Clear(0)
+        markupsLogic = slicer.modules.markups.logic()
+        markupsLogic.AddFiducial(58.602, 41.692, 62.569)
+        markupsLogic.AddFiducial(-59.713, -67.347, -19.529)
+        markupsLogic.AddFiducial(-10.573, -3.036, -93.381)
+        return markupsLogic
