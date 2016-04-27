@@ -3,7 +3,7 @@ from slicer.ScriptedLoadableModule import *
 import os
 import numpy
 import pickle
-import json
+import logging
 import sys
 
 #
@@ -44,7 +44,7 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
         scriptedModulesPath = eval('slicer.modules.%s.path' % self.moduleName.lower())
         scriptedModulesPath = os.path.dirname(scriptedModulesPath)
 
-        libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
+        libPath = os.path.join(scriptedModulesPath)
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
@@ -528,75 +528,151 @@ class EasyClipTest(ScriptedLoadableModuleTest):
 
     def runTest(self):
         # run all tests needed
+        self.delayDisplay("Clear the scene")
         self.setUp()
-        self.test_EasyClip()
+        self.delayDisplay("Download and load datas")
+        self.downloaddata()
+        self.delayDisplay("Starting the tests")
 
-    def test_EasyClip(self):
+        self.delayDisplay("Test1: test of the bouding box function")
+        self.assertTrue(self.test_boundingBoxFunction())
 
-        self.delayDisplay("Starting the test")
-        ###################################################################################################
-        #                                        Loading some data                                        #
-        ###################################################################################################
+        self.delayDisplay("Test2: test of the clipping with one model")
+        self.delayDisplay("Test2-1")
+        self.assertTrue(self.test_ClipingOfOneModel(True, False, True, False, True, False, 235))
+        self.delayDisplay("Test2-2")
+        self.assertTrue(self.test_ClipingOfOneModel(True, True, True, True, True, True, 224))
+        self.delayDisplay("Test2-3")
+        self.assertTrue(self.test_ClipingOfOneModel(True, False, True, True, False, False, 381))
+        self.delayDisplay("Test2-4")
+        self.assertTrue(self.test_ClipingOfOneModel(False, False, True, False, True, True, 425))
+
+        self.delayDisplay("Test3: test of the clipping with multiple models")
+        self.delayDisplay("Test3-1")
+        self.assertTrue(self.test_ClipingOfThreeModels(True, False, False, False, False, False, [505, 510, 552]))
+        self.delayDisplay("Test3-2")
+        self.assertTrue(self.test_ClipingOfThreeModels(True, True, True, False, False, False, [608, 612, 581]))
+        self.delayDisplay("Test3-3")
+        displayNode = slicer.mrmlScene.GetNodesByName('test_sample_LC_T1').GetItemAsObject(0).GetDisplayNode()
+        displayNode.VisibilityOff()
+        self.assertTrue(self.test_ClipingOfThreeModels(True, False, False, False, False, False, [1002, 510, 552]))
+        self.delayDisplay("Test3-4")
+        self.assertTrue(self.test_ClipingOfThreeModels(True, True, True, False, False, False, [1002, 612, 581]))
+        self.delayDisplay("Test3-5")
+        displayNode = slicer.mrmlScene.GetNodesByName('test_sample_LC_T3').GetItemAsObject(0).GetDisplayNode()
+        displayNode.VisibilityOff()
+        self.assertTrue(self.test_ClipingOfThreeModels(True, False, False, False, False, False, [1002, 510, 1002]))
+        self.delayDisplay("Test3-6")
+        self.assertTrue(self.test_ClipingOfThreeModels(True, True, True, False, False, False, [1002, 612, 1002]))
+        self.delayDisplay("Test3-7")
+        displayNode = slicer.mrmlScene.GetNodesByName('test_sample_LC_T2').GetItemAsObject(0).GetDisplayNode()
+        displayNode.VisibilityOff()
+        self.assertTrue(self.test_ClipingOfThreeModels(True, False, False, False, False, False, [1002, 1002, 1002]))
+
+        self.delayDisplay('All tests passed!')
+
+    def downloaddata(self):
         import urllib
         downloads = (
-            ('http://slicer.kitware.com/midas3/download?items=167065', 'model.vtk', slicer.util.loadModel),
-            )
-
-        for url,name,loader in downloads:
-          filePath = slicer.app.temporaryPath + '/' + name
-          if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-            print('Requesting download %s from %s...\n' % (name, url))
-            urllib.urlretrieve(url, filePath)
-          if loader:
-            print('Loading %s...\n' % (name,))
-            loader(filePath)
-        self.delayDisplay('Finished with download and loading\n')
-
+            ('http://slicer.kitware.com/midas3/download?items=213632', 'test_sample_LC_T1.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=213633', 'test_sample_LC_T2.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=213633', 'test_sample_LC_T3.vtk', slicer.util.loadModel),
+        )
+        for url, name, loader in downloads:
+            filePath = slicer.app.temporaryPath + '/' + name
+            print filePath
+            if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
+                logging.info('Requesting download %s from %s...\n' % (name, url))
+                urllib.urlretrieve(url, filePath)
+            if loader:
+                logging.info('Loading %s...' % (name,))
+                loader(filePath)
 
         layoutManager = slicer.app.layoutManager()
         threeDWidget = layoutManager.threeDWidget(0)
         threeDView = threeDWidget.threeDView()
         threeDView.resetFocalPoint()
 
-        self.delayDisplay('Model loaded')
+    def test_boundingBoxFunction(self):
+        self.widget.onComputeBox()
+        return True
 
-        ###################################################################################################
-        #                                 Initialize Plane Position                                       #
-        ###################################################################################################
+    def test_ClipingOfOneModel(self, red, Rpos, green, Gpos, yellow, Ypos, nbOfPointRemaining):
 
-        redslice = slicer.util.getNode('vtkMRMLSliceNodeRed')
-        yellowslice = slicer.util.getNode('vtkMRMLSliceNodeYellow')
-        greenslice = slicer.util.getNode('vtkMRMLSliceNodeGreen')
-        # print redslice, yellowslice, greenslice
-        self.delayDisplay('Planes are displayed!')
+        self.clipping(red, Rpos, green, Gpos, yellow, Ypos)
 
-        #Put planes at specific places
-        matRed = redslice.GetSliceToRAS()
+        polyData = slicer.mrmlScene.GetNodesByName('test_sample_LC_T1').GetItemAsObject(0).GetPolyData()
+        if polyData.GetNumberOfPoints() == nbOfPointRemaining:
+            self.widget.UndoButtonClicked()
+            return True
+        else:
+            print polyData.GetNumberOfPoints()
+            return False
 
-        matRed.SetElement(0,3,0)
-        matRed.SetElement(1,3,0)
-        matRed.SetElement(2,3,8)
-        redslice.SetWidgetVisible(True)
-        print matRed
+    def test_ClipingOfThreeModels(self, red, Rpos, green, Gpos, yellow, Ypos, nbOfPointRemaining):
 
-        matYellow = yellowslice.GetSliceToRAS()
-        matYellow.SetElement(0,3,-3)
-        matYellow.SetElement(1,3,0)
-        matYellow.SetElement(2,3,0)
-        print matYellow
-        yellowslice.SetWidgetVisible(True)
+        self.clipping(red, Rpos, green, Gpos, yellow, Ypos)
 
-        matGreen = greenslice.GetSliceToRAS()
-        matGreen.SetElement(0,3,0)
-        matGreen.SetElement(1,3,-9)
-        matGreen.SetElement(2,3,0)
-        print matGreen
-        greenslice.SetWidgetVisible(True)
+        polyData1 = slicer.mrmlScene.GetNodesByName('test_sample_LC_T1').GetItemAsObject(0).GetPolyData()
+        polyData2 = slicer.mrmlScene.GetNodesByName('test_sample_LC_T2').GetItemAsObject(0).GetPolyData()
+        polyData3 = slicer.mrmlScene.GetNodesByName('test_sample_LC_T3').GetItemAsObject(0).GetPolyData()
+        if polyData1.GetNumberOfPoints() == nbOfPointRemaining[0] and \
+                        polyData2.GetNumberOfPoints() == nbOfPointRemaining[1] and \
+                        polyData3.GetNumberOfPoints() == nbOfPointRemaining[2]:
+            self.widget.UndoButtonClicked()
+            return True
+        else:
+            print polyData1.GetNumberOfPoints()
+            print polyData2.GetNumberOfPoints()
+            print polyData3.GetNumberOfPoints()
+            return False
+
+    def clipping(self, red, Rpos, green, Gpos, yellow, Ypos):
+        if red:
+            self.widget.red_plane_box.setChecked(True)
+            self.widget.red_plane_box.clicked()
+            if Rpos:
+                self.widget.radio_red_Pos.setChecked(True)
+                self.widget.radio_red_Pos.clicked()
+            else:
+                self.widget.radio_red_Neg.setChecked(True)
+                self.widget.radio_red_Neg.clicked()
+        else:
+            self.widget.red_plane_box.setChecked(False)
+            self.widget.red_plane_box.clicked()
+
+        if green:
+            self.widget.green_plane_box.setChecked(True)
+            self.widget.green_plane_box.clicked()
+            if Gpos:
+                self.widget.radio_green_Pos.setChecked(True)
+                self.widget.radio_green_Pos.clicked()
+            else:
+                self.widget.radio_green_Neg.setChecked(True)
+                self.widget.radio_green_Neg.clicked()
+        else:
+            self.widget.green_plane_box.setChecked(False)
+            self.widget.green_plane_box.clicked()
+
+        if yellow:
+            self.widget.yellow_plane_box.setChecked(True)
+            self.widget.yellow_plane_box.clicked()
+            if Ypos:
+                self.widget.radio_yellow_Pos.setChecked(True)
+                self.widget.radio_yellow_Pos.clicked()
+            else:
+                self.widget.radio_yellow_Neg.setChecked(True)
+                self.widget.radio_yellow_Neg.clicked()
+        else:
+            self.widget.yellow_plane_box.setChecked(False)
+            self.widget.yellow_plane_box.clicked()
+
+        self.widget.ClippingButton.click()
+
+    def test_EasyClip(self):
 
         self.delayDisplay('planes are placed!')
 
-        self.widget.logic.getCoord()
-        self.widget.logic.clipping()
 
         self.delayDisplay('Test passed!')
 

@@ -447,6 +447,9 @@ class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoada
         self.delayDisplay("Starting the test of AnglePlanes")
         slicer.modules.AnglePlanesInstance.runTest()
 
+        self.delayDisplay("Starting the test of EasyClip")
+        slicer.modules.EasyClipInstance.runTest()
+
     # ************************************************************************ #
     # ---------------- Test of LongitudinalQuantificationCore ---------------- #
     # ************************************************************************ #
