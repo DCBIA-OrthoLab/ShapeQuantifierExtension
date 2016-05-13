@@ -3,6 +3,7 @@ from slicer.ScriptedLoadableModule import *
 import numpy, csv, os
 import math
 import sys
+import logging
 
 #
 # CalculateDisplacement
@@ -43,7 +44,7 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         scriptedModulesPath = eval('slicer.modules.%s.path' % self.moduleName.lower())
         scriptedModulesPath = os.path.dirname(scriptedModulesPath)
 
-        libPath = os.path.join(scriptedModulesPath, '..', 'PythonLibrairies')
+        libPath = os.path.join(scriptedModulesPath)
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
@@ -579,7 +580,7 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
             element.ThreeDComponent = None
         return element
 
-    def getComboboxesToUpdate(self, fidList, markupID):
+    def getComboboxesToUpdate(self, fidList):
         comboboxesToUpdate = list()
         if self.LongitudinalQuantificationCore.selectedFidList is fidList:
             comboboxesToUpdate.append(self.interface.landmarkComboBox1)
@@ -922,7 +923,7 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
         lineLBIndex = fidListLineLB.GetMarkupIndexByID(lineLBID)
         PointID = self.LongitudinalQuantificationCore.findIDFromLabel(fidListPoint, fidLabelPoint)
         PointIndex = fidListPoint.GetMarkupIndexByID(PointID)
-        elementToAdd = self.LongitudinalQuantificationCore.distanceLinePointStorage()
+        elementToAdd = self.distanceLinePointStorage()
         # if this distance has already been computed before -> replace values
         for element in linePointList:
             if element.landmarkALineID == lineLAID and \
@@ -1160,189 +1161,209 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
 class Q3DCTest(ScriptedLoadableModuleTest):
 
     def setUp(self):
-        """ Do whatever is needed to reset the state - typically a scene clear will be enough.
-            """
-        slicer.mrmlScene.Clear(0)
+        # reset the state - clear scene
         self.widget = slicer.modules.Q3DCWidget
-
+        slicer.mrmlScene.Clear(0)
 
     def runTest(self):
-        """Run as few or as many tests as needed here.
-            """
+        # run all tests needed
+        self.delayDisplay("Clear the scene")
         self.setUp()
-        self.delayDisplay(' Starting tests ', 200)
-        self.delayDisplay(' Test 3Dcomponents ')
-        self.assertTrue(self.test_CalculateDisplacement1())
-        self.delayDisplay(' Test Angles Components')
-        self.assertTrue(self.test_CalculateDisplacement2())
+        self.delayDisplay("Download and load datas")
+        self.downloaddata()
+        self.delayDisplay("Starting the tests")
 
-        self.test_CalculateDisplacement1()
-        self.test_CalculateDisplacement2()
+        self.delayDisplay("Test1: Adding of the landmarks on the different models")
+        self.delayDisplay("Test1-1: Adding of the landmarks on the T1 model")
+        self.assertTrue(self.test_AddingLandmarks( "test_sample_LC_T1", "FiducialsT1",
+                                               [[2.10738791, -4.83934865, 36.13066709],
+                                                [12.2914279, 15.31336608, 32.52167858],
+                                                [18.12651635, 6.39560101, 31.4412528]]))
+        self.delayDisplay("Test1-2: Adding of the landmarks on the T2 model")
+        self.assertTrue(self.test_AddingLandmarks( "test_sample_LC_T2", "FiducialsT2",
+                                               [[11.72863443, 14.01486727, 32.8596916],
+                                                [7.82101916, 8.1821128, 36.84962826],
+                                                [18.10934698, 6.67499921, 32.57312822]]))
+        self.delayDisplay("Test1-3: Adding of the landmarks on the T3 model")
+        self.assertTrue(self.test_AddingLandmarks( "test_sample_LC_T3", "FiducialsT3",
+                                               [[19.24090905, 8.41699664, 31.0460558],
+                                                [4.99470106, 4.70245687, 34.3911743],
+                                                [13.82451733, 14.960671, 30.78424719]]))
 
-        self.test_SimulateTutorial()
-        self.delayDisplay(' Tests Passed! ')
+        self.delayDisplay("Test2: Test of the middle point functionality")
+        self.delayDisplay("Test2-1: Adding a midpoint on the T1 model")
+        self.assertTrue(self.test_AddingMidpoint("test_sample_LC_T1", "FiducialsT1", [9.556800127029419, 8.575649797916412, 33.593801498413086]))
+        self.delayDisplay("Test2-2: Adding a midpoint on the T2 model")
+        self.assertTrue(self.test_AddingMidpoint("test_sample_LC_T2", "FiducialsT2", [9.618019819259644, 11.043690204620361, 34.94034957885742]))
+        self.delayDisplay("Test2-3: Adding a midpoint on the T3 model")
+        self.assertTrue(self.test_AddingMidpoint("test_sample_LC_T3", "FiducialsT3", [12.150260210037231, 6.398449897766113, 32.804999351501465]))
 
-    def test_CalculateDisplacement1(self):
-        logic = self.widget.logic
-        markupsNode1 = slicer.vtkMRMLMarkupsFiducialNode()
-        markupsNode1.AddFiducial(-5.331, 51.955, 4.831)
-        markupsNode1.AddFiducial(-8.018, 41.429, -52.621)
-        diffXAxis, diffYAxis, diffZAxis, threeDDistance = logic.defineDistances(markupsNode1, 0, markupsNode1, 1)
-        if diffXAxis != -2.687 or diffYAxis != -10.526 or diffZAxis != -57.452 or threeDDistance != 58.47:
-            return False
-        return True
+        self.delayDisplay("Test3: Test of the calcul of a distance between two landmarks")
+        self.delayDisplay("Test3-1: distance between T1P1 and T1P4")
+        self.assertTrue(self.test_distanceBetweenTwoLandmarks(slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),0,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),3,
+                                                              [3.241, 6.817, -0.629, 7.575],0))
+        self.delayDisplay("Test3-2: distance between T1P2 and T2P3")
+        self.assertTrue(self.test_distanceBetweenTwoLandmarks(slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),1,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT2").GetItemAsObject(0),2,
+                                                              [5.217, -8.735, -0.291, 10.179],1))
+        self.delayDisplay("Test3-3: distance between T3P2 and T3P4")
+        self.assertTrue(self.test_distanceBetweenTwoLandmarks(slicer.mrmlScene.GetNodesByName("FiducialsT3").GetItemAsObject(0),1,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT3").GetItemAsObject(0),3,
+                                                              [7.089, 1.864, -1.77, 7.541],2))
+        self.delayDisplay("Test3-4: distance between T2P4 and T3P3")
+        self.assertTrue(self.test_distanceBetweenTwoLandmarks(slicer.mrmlScene.GetNodesByName("FiducialsT2").GetItemAsObject(0),3,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT3").GetItemAsObject(0),2,
+                                                              [4.069, 3.698, -3.937, 6.763],3))
 
-    def test_CalculateDisplacement2(self):
-        logic = self.widget.logic
-        markupsNode1 = slicer.vtkMRMLMarkupsFiducialNode()
+        self.delayDisplay("Test4: Test of the calcul of an angle between two lines")
+        self.delayDisplay("Test4-1: angle between [T1P1, T1P4] and [T1P2, T1P3]")
+        self.assertTrue(self.test_angleBetweenTwoLines(slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),0,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),3,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),1,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),2,
+                                                              [-126.009, -165.766, -5.16],0))
+        self.delayDisplay("Test4-2: angle between [T1P1, T1P4] and [T2P1, T2P4]")
+        self.assertTrue(self.test_angleBetweenTwoLines(slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),0,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),3,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT2").GetItemAsObject(0),0,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT2").GetItemAsObject(0),3,
+                                                              [170.028, 149.917, 146.033],1))
+        self.delayDisplay("Test4-3: angle between [T1P1, T2P4] and [T1P1, T2P4]")
+        self.assertTrue(self.test_angleBetweenTwoLines(slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),0,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT2").GetItemAsObject(0),3,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),0,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT2").GetItemAsObject(0),3,
+                                                              [0.0, 0.0, 0.0],2))
+        self.delayDisplay("Test4-4: angle between [T1P1, T2P4] and [T3P2, T2P1]")
+        self.assertTrue(self.test_angleBetweenTwoLines(slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),0,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT2").GetItemAsObject(0),3,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT3").GetItemAsObject(0),1,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT2").GetItemAsObject(0),0,
+                                                              [-15.543, -14.715, -26.739],3))
 
-        markupsNode1.AddFiducial(63.90,-46.98, 6.98)
-        markupsNode1.AddFiducial(43.79,-60.16,12.16)
-        markupsNode1.AddFiducial(62.21,-45.31,7.41)
-        markupsNode1.AddFiducial(41.97,-61.24,11.30)
+        self.delayDisplay("Test5: Test of the calcul of a distance between a line and a point")
+        self.delayDisplay("Test5-1: distance between [T1P1, T1P4] and T1P2")
+        self.assertTrue(self.test_distanceBetweenLineAndPoint(slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),0,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),3,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),1,
+                                                              [3.241, 6.817, -0.629, 7.575],0))
+        self.delayDisplay("Test5-2: distance between [T1P1, T1P4] and T2P1")
+        self.assertTrue(self.test_distanceBetweenLineAndPoint(slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),0,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),3,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT2").GetItemAsObject(0),0,
+                                                              [2.146, 5.401, -0.735, 5.858],1))
+        self.delayDisplay("Test5-3: distance between [T1P1, T2P4] and T1P1")
+        self.assertTrue(self.test_distanceBetweenLineAndPoint(slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),0,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT2").GetItemAsObject(0),3,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),0,
+                                                              [0.0, 0.0, 0.0, 0.0],2))
+        self.delayDisplay("Test5-4: distance between [T1P1, T2P4] and T3P2")
+        self.assertTrue(self.test_distanceBetweenLineAndPoint(slicer.mrmlScene.GetNodesByName("FiducialsT1").GetItemAsObject(0),0,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT2").GetItemAsObject(0),3,
+                                                              slicer.mrmlScene.GetNodesByName("FiducialsT3").GetItemAsObject(0),1,
+                                                              [-1.995, 0.695, 0.191, 2.121],3))
 
-        yaw = logic.computeYaw(markupsNode1, 0, markupsNode1, 1, markupsNode1, 2, markupsNode1, 3)
-        roll = logic.computeRoll(markupsNode1, 0, markupsNode1, 1, markupsNode1, 2, markupsNode1, 3)
-        if yaw != 4.964 or roll != 3.565:
-            return False
 
-        markupsNode1.AddFiducial(53.80,-53.57,9.47)
-        markupsNode1.AddFiducial(53.98,-52.13,9.13)
-        markupsNode1.AddFiducial(52.09,-53.27,9.36)
-        markupsNode1.AddFiducial(51.77,-50.10,9.80)
-        pitch = logic.computePitch(markupsNode1, 4, markupsNode1, 5, markupsNode1, 6, markupsNode1, 7)
-        if pitch != 21.187:
-            return False
+        self.delayDisplay('All tests passed!')
 
-        return True
-
-    def test_SimulateTutorial(self):
-
-        #
-        # first, get the data - a zip file of example data
-        #
+    def downloaddata(self):
         import urllib
         downloads = (
-            ('http://slicer.kitware.com/midas3/download/item/211921/Q3DCExtensionTestData.zip', 'Q3DCExtensionTestData.zip'),
-            )
+            ('http://slicer.kitware.com/midas3/download?items=213632', 'test_sample_LC_T1.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=213633', 'test_sample_LC_T2.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=213633', 'test_sample_LC_T3.vtk', slicer.util.loadModel),
+        )
+        for url, name, loader in downloads:
+            filePath = slicer.app.temporaryPath + '/' + name
+            print filePath
+            if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
+                logging.info('Requesting download %s from %s...\n' % (name, url))
+                urllib.urlretrieve(url, filePath)
+            if loader:
+                logging.info('Loading %s...' % (name,))
+                loader(filePath)
 
-        self.delayDisplay("Downloading")
-        for url,name in downloads:
-          filePath = slicer.app.temporaryPath + '/' + name
-          if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-            self.delayDisplay('Requesting download %s from %s...\n' % (name, url))
-            urllib.urlretrieve(url, filePath)
-        self.delayDisplay('Finished with download\n')
+        layoutManager = slicer.app.layoutManager()
+        threeDWidget = layoutManager.threeDWidget(0)
+        threeDView = threeDWidget.threeDView()
+        threeDView.resetFocalPoint()
 
-        self.delayDisplay("Unzipping")
-        q3dcFilesDirectory = slicer.app.temporaryPath + '/q3dcFiles'
-        qt.QDir().mkpath(q3dcFilesDirectory)
-        slicer.app.applicationLogic().Unzip(filePath, q3dcFilesDirectory)
+    def test_AddingLandmarks(self, ModelName, FidNodeNampe, PlanePointsCoords):
 
-        modelNodes = {}
-        mandibleFiles = ("AH1m.vtk", "AH2m.vtk")
-        fiducialFiles = ("AH1f.vtk", "AH2f.vtk")
-        for mandibleFile in mandibleFiles:
-            name = os.path.splitext(mandibleFile)[0]
-            self.delayDisplay("loading: %s" % name)
-            filePath = q3dcFilesDirectory + "/" + mandibleFile
-            success, modelNodes[name] = slicer.util.loadModel(filePath, returnNode=True)
-            if not success:
-                self.delayDisplay("load failed for %s" % filePath)
-                return False
-
-        modelNodes['AH2m'].GetDisplayNode().SetVisibility(0)
-        modelNodes['AH1m'].GetDisplayNode().SetColor((1,0,0))
-
-        self.delayDisplay("Enter markup mode")
-        q3dcWidget = slicer.modules.Q3DCWidget
-
-        points = ( (43, 25, -10), (-49, 22, -8), (-6, 64, -53) )
-
-        firstMarkupsNode = None
-        firstMarkupID = None
-
-        movingMarkupsFiducial = slicer.vtkMRMLMarkupsFiducialNode()
-        movingMarkupsFiducial.SetName("F")
-        slicer.mrmlScene.AddNode(movingMarkupsFiducial)
-        q3dcWidget.inputModelSelector.setCurrentNode(modelNodes['AH2m'])
-        q3dcWidget.inputLandmarksSelector.setCurrentNode(movingMarkupsFiducial)
-
-        index = 0
-        for point in points:
-            q3dcWidget.onAddLandmarkButtonClicked()
-            markupsNodeID = slicer.modules.markups.logic().GetActiveListID()
-            if not markupsNodeID:
-                self.delayDisplay("No markupsNodeID")
-                return False
-            markupsNode = slicer.util.getNode(markupsNodeID)
-            if not markupsNode:
-                self.delayDisplay("No markupsNode")
-                return False
-            markupsNode.AddFiducial(*point)
-            if not firstMarkupsNode:
-                firstMarkupsNode = markupsNode
-                firstMarkupID = markupsNode.GetNthMarkupID(0)
-            self.delayDisplay("Added point %d" % index)
-            index += 1
-
-        # reset the interaction node - since we are bypassing the clicks we don't need it
-        interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
-        interactionNode.SetCurrentInteractionMode(slicer.vtkMRMLInteractionNode.ViewTransform)
-
-        self.delayDisplay("Define a middle point")
-        q3dcWidget.midPointGroupBox.collapsed = False
-        q3dcWidget.landmarkComboBox2.currentIndex = 1
-        q3dcWidget.defineMiddlePointButton.clicked()
-        midpointMarkupID = q3dcWidget.LongitudinalQuantificationCore.findIDFromLabel(movingMarkupsFiducial,"F-4")
-        if not midpointMarkupID:
-            print ("Did not define a midpoint node")
-            return False
-
-        self.delayDisplay("Calculate a distance")
-        q3dcWidget.distanceGroupBox.collapsed = False
-        q3dcWidget.fidListComboBoxA.setCurrentNode(movingMarkupsFiducial)
-        q3dcWidget.fidListComboBoxB.setCurrentNode(movingMarkupsFiducial)
-        q3dcWidget.landmarkComboBoxA.currentIndex = 0
-        q3dcWidget.landmarkComboBoxB.currentIndex = 1
-        q3dcWidget.computeDistancesPushButton.clicked()
-
-        self.delayDisplay("Calculate angle")
-        q3dcWidget.angleGroupBox.collapsed = False
-        q3dcWidget.fidListComboBoxline1LA.setCurrentNode(movingMarkupsFiducial)
-        q3dcWidget.fidListComboBoxline1LB.setCurrentNode(movingMarkupsFiducial)
-        q3dcWidget.fidListComboBoxline2LA.setCurrentNode(movingMarkupsFiducial)
-        q3dcWidget.fidListComboBoxline2LB.setCurrentNode(movingMarkupsFiducial)
-        q3dcWidget.line1LAComboBox.currentIndex = 0
-        q3dcWidget.line1LBComboBox.currentIndex = 1
-        q3dcWidget.line2LAComboBox.currentIndex = 2
-        q3dcWidget.line2LBComboBox.currentIndex = 3
-
-        q3dcWidget.pitchCheckBox.checked = True
-        q3dcWidget.rollCheckBox.checked = True
-        q3dcWidget.yawCheckBox.checked = True
-
-        q3dcWidget.computeAnglesPushButton.clicked()
-
-        self.delayDisplay("Calculate a distance between a line and a point")
-        q3dcWidget.angleGroupBox.collapsed = False
-        q3dcWidget.fidListComboBoxlineLA.setCurrentNode(movingMarkupsFiducial)
-        q3dcWidget.fidListComboBoxlineLB.setCurrentNode(movingMarkupsFiducial)
-        q3dcWidget.fidListComboBoxlinePoint.setCurrentNode(movingMarkupsFiducial)
-        q3dcWidget.lineLAComboBox.currentIndex = 0
-        q3dcWidget.lineLBComboBox.currentIndex = 1
-        q3dcWidget.linePointComboBox.currentIndex = 2
-
-        q3dcWidget.landmarkComboBox.setCurrentIndex(0)
-        self.delayDisplay("Move endpoint, should update midpoint")
-        midpointMarkupIndex = movingMarkupsFiducial.GetMarkupIndexByID(midpointMarkupID)
-        initialPosition = [0,]*3
-        movingMarkupsFiducial.GetNthFiducialPosition(midpointMarkupIndex, initialPosition)
-        movingMarkupsFiducial.SetNthFiducialPosition(0, 45, 20, -15)
-        movedPosition = [0,]*3
-        movingMarkupsFiducial.GetNthFiducialPosition(midpointMarkupIndex, movedPosition)
-        if initialPosition == movedPosition:
-            print('midpoint landmark did not move')
-            return False
+        self.widget.inputModelSelector.setCurrentNode(
+            slicer.mrmlScene.GetNodesByName(ModelName).GetItemAsObject(0))
+        inputMarkupsFiducial = slicer.vtkMRMLMarkupsFiducialNode()
+        inputMarkupsFiducial.SetName(FidNodeNampe)
+        slicer.mrmlScene.AddNode(inputMarkupsFiducial)
+        self.widget.inputLandmarksSelector.setCurrentNode(inputMarkupsFiducial)
+        for point in PlanePointsCoords:
+            inputMarkupsFiducial.AddFiducial(point[0], point[1], point[2])
+            self.widget.LongitudinalQuantificationCore.onPointModifiedEvent(inputMarkupsFiducial,None)
 
         return True
+
+    def test_AddingMidpoint(self, ModelName, FidNodeName, positionOfTheMidPoint):
+
+        self.widget.inputModelSelector.setCurrentNode(
+            slicer.mrmlScene.GetNodesByName(ModelName).GetItemAsObject(0))
+        self.widget.inputLandmarksSelector.setCurrentNode(
+                slicer.mrmlScene.GetNodesByName(FidNodeName).GetItemAsObject(0))
+        self.widget.landmarkComboBox1.setCurrentIndex(0)
+        self.widget.landmarkComboBox2.setCurrentIndex(1)
+        self.widget.defineMiddlePointButton.click()
+        coord = [0,0,0]
+        slicer.mrmlScene.GetNodesByName(FidNodeName).GetItemAsObject(0).GetNthFiducialPosition(3, coord)
+
+        return coord == positionOfTheMidPoint
+
+    def test_distanceBetweenTwoLandmarks(self, fidList1, indFid1, fidList2, indFid2, distance, numberOfTest):
+        self.widget.fidListComboBoxA.setCurrentNode(fidList1)
+        self.widget.fidListComboBoxB.setCurrentNode(fidList2)
+        self.widget.landmarkComboBoxA.setCurrentIndex(indFid1)
+        self.widget.landmarkComboBoxB.setCurrentIndex(indFid2)
+        self.widget.computeDistancesPushButton.click()
+
+        return distance == [self.widget.computedDistanceList[numberOfTest].RLComponent,
+               self.widget.computedDistanceList[numberOfTest].APComponent,
+               self.widget.computedDistanceList[numberOfTest].SIComponent,
+               self.widget.computedDistanceList[numberOfTest].ThreeDComponent]
+
+    def test_angleBetweenTwoLines(self, fidListL1P1, indFidL1P1, fidListL1P2, indFidL1P2,
+                                  fidListL2P1, indFidL2P1, fidListL2P2, indFidL2P2,
+                                  distance, numberOfTest):
+
+        self.widget.fidListComboBoxline1LA.setCurrentNode(fidListL1P1)
+        self.widget.line1LAComboBox.setCurrentIndex(indFidL1P1)
+        self.widget.fidListComboBoxline1LB.setCurrentNode(fidListL1P2)
+        self.widget.line1LBComboBox.setCurrentIndex(indFidL1P2)
+        self.widget.fidListComboBoxline2LA.setCurrentNode(fidListL2P1)
+        self.widget.line2LAComboBox.setCurrentIndex(indFidL2P1)
+        self.widget.fidListComboBoxline2LB.setCurrentNode(fidListL2P2)
+        self.widget.line2LBComboBox.setCurrentIndex(indFidL2P2)
+        self.widget.pitchCheckBox.setChecked(True)
+        self.widget.rollCheckBox.setChecked(True)
+        self.widget.yawCheckBox.setChecked(True)
+        self.widget.computeAnglesPushButton.enabled = True
+        self.widget.computeAnglesPushButton.click()
+
+        return distance == [self.widget.computedAnglesList[numberOfTest].Yaw,
+               self.widget.computedAnglesList[numberOfTest].Pitch,
+               self.widget.computedAnglesList[numberOfTest].Roll]
+
+    def test_distanceBetweenLineAndPoint(self, fidListLP1, indFidLP1, fidListLP2, indFidLP2,
+                                  fidListP, indFidP,
+                                  distance, numberOfTest):
+
+        self.widget.fidListComboBoxlineLA.setCurrentNode(fidListLP1)
+        self.widget.lineLAComboBox.setCurrentIndex(indFidLP1)
+        self.widget.fidListComboBoxlineLB.setCurrentNode(fidListLP2)
+        self.widget.lineLBComboBox.setCurrentIndex(indFidLP2)
+        self.widget.fidListComboBoxlinePoint.setCurrentNode(fidListP)
+        self.widget.linePointComboBox.setCurrentIndex(indFidP)
+        self.widget.computeLinePointPushButton.click()
+
+        return distance == [self.widget.computedLinePointList[numberOfTest].RLComponent,
+               self.widget.computedLinePointList[numberOfTest].APComponent,
+               self.widget.computedLinePointList[numberOfTest].SIComponent,
+               self.widget.computedLinePointList[numberOfTest].ThreeDComponent]
