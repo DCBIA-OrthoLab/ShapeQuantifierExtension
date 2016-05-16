@@ -88,6 +88,7 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         slicer.mrmlScene.AddObserver(slicer.mrmlScene.EndCloseEvent, self.onCloseScene)
 
     def enter(self):
+        print "enter PickAndPaint"
         model = self.inputModelSelector.currentNode()
         fidlist = self.inputLandmarksSelector.currentNode()
 
@@ -110,6 +111,11 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
                     markupLabel = fidList.GetNthMarkupLabel(n)
                     landmarkDescription[markupID]["landmarkLabel"] = markupLabel
                 fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
+                
+        onSurface = self.loadLandmarksOnSurfacCheckBox.isChecked()
+        self.LongitudinalQuantificationCore.connectLandmarks(self.inputModelSelector,
+                              self.inputLandmarksSelector,
+                              onSurface)
 
     def onCloseScene(self, obj, event):
         list = slicer.mrmlScene.GetNodesByClass("vtkMRMLModelNode")

@@ -290,6 +290,11 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
                     landmarkDescription[markupID]["landmarkLabel"] = markupLabel
                 fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
 
+        onSurface = self.loadLandmarksOnSurfacCheckBox.isChecked()
+        self.LongitudinalQuantificationCore.connectLandmarks(self.inputModelSelector,
+                              self.inputLandmarksSelector,
+                              onSurface)
+
 
     def UpdateInterface(self):
         self.defineMiddlePointButton.enabled = self.landmarkComboBox1.currentText != '' and \

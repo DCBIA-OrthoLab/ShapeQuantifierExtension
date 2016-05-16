@@ -40,7 +40,7 @@ class LongitudinalQuantificationCore():
             return
         if not self.selectedModel:
             return
-        # print "UpdateThreeDView"
+        print "UpdateThreeDView"
         active = self.selectedFidList
         #deactivate all landmarks
         list = slicer.mrmlScene.GetNodesByClass("vtkMRMLMarkupsFiducialNode")

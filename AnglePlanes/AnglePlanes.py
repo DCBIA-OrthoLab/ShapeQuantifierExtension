@@ -215,6 +215,11 @@ class AnglePlanesWidget(ScriptedLoadableModuleWidget):
                 print landmarkDescription
                 fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
 
+        onSurface = self.loadLandmarksOnSurfacCheckBox.isChecked()
+        self.LongitudinalQuantificationCore.connectLandmarks(self.inputModelSelector,
+                              self.inputLandmarksSelector,
+                              onSurface)
+
     def UpdateInterface(self):
         self.LongitudinalQuantificationCore.UpdateThreeDView(self.landmarkComboBox.currentText)
 
