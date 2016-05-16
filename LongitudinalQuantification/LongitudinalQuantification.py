@@ -450,6 +450,15 @@ class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoada
         self.delayDisplay("Starting the test of EasyClip")
         slicer.modules.EasyClipInstance.runTest()
 
+        self.delayDisplay("Starting the test of PickAndPaint")
+        slicer.modules.PickAndPaintInstance.runTest()
+
+        self.delayDisplay("Starting the test of Q3DC")
+        slicer.modules.Q3DCInstance.runTest()
+
+        self.delayDisplay("Starting the test of MeshStatistics")
+        slicer.modules.MeshStatisticsInstance.runTest()
+
     # ************************************************************************ #
     # ---------------- Test of LongitudinalQuantificationCore ---------------- #
     # ************************************************************************ #
