@@ -766,7 +766,7 @@ class AnglePlanesLogic(ScriptedLoadableModuleLogic):
         self.interface = interface
         self.LongitudinalQuantificationCore = LongitudinalQuantificationCore
 
-    def getComboboxesToUpdate(self, fidList, markupID):
+    def getComboboxesToUpdate(self, fidList):
         comboboxesToUpdate = list()
         for planeControls in self.interface.planeControlsDictionary.values():
             if planeControls.fidlist is fidList:
@@ -774,11 +774,12 @@ class AnglePlanesLogic(ScriptedLoadableModuleLogic):
                 comboboxesToUpdate.append(planeControls.landmark2ComboBox)
                 comboboxesToUpdate.append(planeControls.landmark3ComboBox)
         key = self.interface.selectPlaneForMidPoint.currentText
-        plane = self.interface.planeControlsDictionary[key]
-        midFidList = plane.fidlist
-        if midFidList == fidList:
-            comboboxesToUpdate.append(self.interface.landmarkComboBox1MidPoint)
-            comboboxesToUpdate.append(self.interface.landmarkComboBox2MidPoint)
+        if key != '':
+            plane = self.interface.planeControlsDictionary[key]
+            midFidList = plane.fidlist
+            if midFidList == fidList:
+                comboboxesToUpdate.append(self.interface.landmarkComboBox1MidPoint)
+                comboboxesToUpdate.append(self.interface.landmarkComboBox2MidPoint)
         return comboboxesToUpdate
 
     def getMatrix(self, slice):

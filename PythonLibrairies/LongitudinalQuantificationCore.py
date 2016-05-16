@@ -15,22 +15,7 @@ class LongitudinalQuantificationCore():
     def __init__(self, parent = None, interface = None):
 
         if parent:
-            parent.title = "LongitudinalQuantificationCore"
-            parent.categories = []
-            parent.dependencies = []
-            parent.contributors = ["Jean-Baptiste Vimort"]
-            parent.helpText = """
-                This is a common library used in the modules of
-                Longitudinal Quantification Extension.
-                """
-            parent.acknowledgementText = """
-                This work was supported by the National
-                Institutes of Dental and Craniofacial Research
-                and Biomedical Imaging and Bioengineering of
-                the National Institutes of Health under Award
-                Number R01DE024450.
-                """
-            self.parent = parent
+            parent.title = " "
 
         self.selectedFidList = None
         self.selectedModel = None
@@ -282,7 +267,7 @@ class LongitudinalQuantificationCore():
         else:
             self.createNewDataStructure(landmarks, model, onSurface)
         #update of the landmark Combo Box
-        self.updateLandmarkComboBox(landmarks, self.interface.landmarkComboBox, False)
+        self.resetAllLandmarkComboboxes(landmarks)
         #adding of listeners
         MarkupAddedEventTag = landmarks.AddObserver(landmarks.MarkupAddedEvent, self.onMarkupAddedEvent)
         landmarks.SetAttribute("MarkupAddedEventTag",self.encodeJSON({"MarkupAddedEventTag":MarkupAddedEventTag}))
@@ -338,7 +323,7 @@ class LongitudinalQuantificationCore():
 
     # Called when a landmarks is moved
     def onPointModifiedEvent(self, obj, event):
-        print "----onPointModifiedEvent Angle plane-----"
+        print "----onPointModifiedEvent-----"
         landmarkDescription = self.decodeJSON(obj.GetAttribute("landmarkDescription"))
         if not landmarkDescription:
             return
@@ -372,6 +357,7 @@ class LongitudinalQuantificationCore():
                     isFound = True
             if not isFound:
                 IDs.append(ID)
+        self.resetAllLandmarkComboboxes(obj)
         # for ID in IDs:
         #     self.deleteLandmark(obj, landmarkDescription[ID]["landmarkLabel"])
         #     landmarkDescription.pop(ID,None)
@@ -422,7 +408,6 @@ class LongitudinalQuantificationCore():
 
     def getClosestPointIndex(self, fidNode, inputPolyData, landmarkID):
         landmarkCoord = numpy.zeros(3)
-        landmarkCoord[1] = 42
         fidNode.GetNthFiducialPosition(landmarkID, landmarkCoord)
         pointLocator = vtk.vtkPointLocator()
         pointLocator.SetDataSet(inputPolyData)
@@ -487,17 +472,25 @@ class LongitudinalQuantificationCore():
         # update of the Combobox that are always updated
         self.updateLandmarkComboBox(fidList, self.interface.landmarkComboBox, False)
         if hasattr(self.interface.logic, 'getComboboxesToUpdate'):
-            comboboxesToUpdate = self.interface.logic.getComboboxesToUpdate(fidList, markupID)
+            comboboxesToUpdate = self.interface.logic.getComboboxesToUpdate(fidList)
             for combobox in comboboxesToUpdate:
                 self.addLandmarkToCombox(fidList, combobox, markupID)
 
-    def deleteLandmark(self, fidList, label):
+    def deleteLandmark(self, fidList, label, markupID):
         # update of the Combobox that are always updated
         self.interface.landmarkComboBox.removeItem(self.interface.landmarkComboBox.findText(label))
         if hasattr(self.interface.logic, 'getComboboxesToUpdate'):
-            comboboxesToUpdate = self.interface.logic.getComboboxesToUpdate(fidList, markupID)
+            comboboxesToUpdate = self.interface.logic.getComboboxesToUpdate(fidList)
             for combobox in comboboxesToUpdate:
                 combobox.removeItem(combobox.findText(label))
+
+    def resetAllLandmarkComboboxes(self, fidList):
+        # update of the Combobox that are always updated
+        self.updateLandmarkComboBox(fidList, self.interface.landmarkComboBox, False)
+        if hasattr(self.interface.logic, 'getComboboxesToUpdate'):
+            comboboxesToUpdate = self.interface.logic.getComboboxesToUpdate(fidList)
+            for combobox in comboboxesToUpdate:
+                self.updateLandmarkComboBox(fidList, combobox)
 
     def GetConnectedVertices(self, connectedVerticesIDList, polyData, pointID):
         # Return IDs of all the vertices that compose the first neighbor.
