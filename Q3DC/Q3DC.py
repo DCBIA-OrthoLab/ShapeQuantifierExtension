@@ -1270,9 +1270,9 @@ class Q3DCTest(ScriptedLoadableModuleTest):
     def downloaddata(self):
         import urllib
         downloads = (
-            ('http://slicer.kitware.com/midas3/download?items=213632', 'test_sample_LC_T1.vtk', slicer.util.loadModel),
-            ('http://slicer.kitware.com/midas3/download?items=213633', 'test_sample_LC_T2.vtk', slicer.util.loadModel),
-            ('http://slicer.kitware.com/midas3/download?items=213633', 'test_sample_LC_T3.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=239999', 'test_sample_LC_T1.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=239996', 'test_sample_LC_T2.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=239993', 'test_sample_LC_T3.vtk', slicer.util.loadModel),
         )
         for url, name, loader in downloads:
             filePath = slicer.app.temporaryPath + '/' + name

@@ -706,12 +706,14 @@ class MeshStatisticsTest(ScriptedLoadableModuleTest):
                                          []],
                                         "Test5-3"))
 
+        self.delayDisplay("All test passed!")
+
     def downloaddata(self):
         import urllib
         downloads = (
-            ('http://slicer.kitware.com/midas3/download?items=213632', 'T1toT2.vtk', slicer.util.loadModel),
-            ('http://slicer.kitware.com/midas3/download?items=213633', 'T1toT3.vtk', slicer.util.loadModel),
-            ('http://slicer.kitware.com/midas3/download?items=213633', 'T2toT3.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=240003', 'T1toT2.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=240002', 'T1toT3.vtk', slicer.util.loadModel),
+            ('http://slicer.kitware.com/midas3/download?items=240001', 'T2toT3.vtk', slicer.util.loadModel),
         )
         for url, name, loader in downloads:
             filePath = slicer.app.temporaryPath + '/' + name

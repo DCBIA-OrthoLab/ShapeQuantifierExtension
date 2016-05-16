@@ -459,6 +459,8 @@ class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoada
         self.delayDisplay("Starting the test of MeshStatistics")
         slicer.modules.MeshStatisticsInstance.runTest()
 
+        self.delayDisplay("All test passed!")
+
     # ************************************************************************ #
     # ---------------- Test of LongitudinalQuantificationCore ---------------- #
     # ************************************************************************ #
