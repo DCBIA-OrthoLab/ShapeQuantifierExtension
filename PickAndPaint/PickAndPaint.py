@@ -111,7 +111,7 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
                     markupLabel = fidList.GetNthMarkupLabel(n)
                     landmarkDescription[markupID]["landmarkLabel"] = markupLabel
                 fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
-                
+
         onSurface = self.loadLandmarksOnSurfacCheckBox.isChecked()
         self.LongitudinalQuantificationCore.connectLandmarks(self.inputModelSelector,
                               self.inputLandmarksSelector,
