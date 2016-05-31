@@ -1,9 +1,9 @@
 set(
-  MODULE_NAME LongitudinalQuantificationCore)
+  MODULE_NAME ShapeQuantifierCore)
 
 set(
   MODULE_PYTHON_SCRIPTS
-  LongitudinalQuantificationCore.py)
+  ShapeQuantifierCore.py)
 
 slicerMacroBuildScriptedModule(
   NAME ${MODULE_NAME}

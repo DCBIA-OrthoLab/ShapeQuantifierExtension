@@ -33,12 +33,12 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
-        import LongitudinalQuantificationCore
-        reload(LongitudinalQuantificationCore)
+        import ShapeQuantifierCore
+        reload(ShapeQuantifierCore)
 
         #reload the logic if there is any change
-        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore.LongitudinalQuantificationCore(interface = self)
-        self.logic = PickAndPaintLogic(interface=self, LongitudinalQuantificationCore=self.LongitudinalQuantificationCore)
+        self.ShapeQuantifierCore = ShapeQuantifierCore.ShapeQuantifierCore(interface = self)
+        self.logic = PickAndPaintLogic(interface=self, ShapeQuantifierCore=self.ShapeQuantifierCore)
         self.interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
 
         # UI setup
@@ -51,25 +51,25 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         self.widget = widget
         self.layout.addWidget(widget)
 
-        self.inputModelLabel = self.LongitudinalQuantificationCore.get("inputModelLabel")  # this atribute is usefull for Longitudinal quantification extension
-        self.inputLandmarksLabel = self.LongitudinalQuantificationCore.get("inputLandmarksLabel")  # this atribute is usefull for Longitudinal quantification extension
-        self.inputModelSelector = self.LongitudinalQuantificationCore.get("inputModelSelector")
+        self.inputModelLabel = self.ShapeQuantifierCore.get("inputModelLabel")  # this atribute is usefull for Shape Quantifier extension
+        self.inputLandmarksLabel = self.ShapeQuantifierCore.get("inputLandmarksLabel")  # this atribute is usefull for Shape Quantifier extension
+        self.inputModelSelector = self.ShapeQuantifierCore.get("inputModelSelector")
         self.inputModelSelector.setMRMLScene(slicer.mrmlScene)
-        self.inputLandmarksSelector = self.LongitudinalQuantificationCore.get("inputLandmarksSelector")
+        self.inputLandmarksSelector = self.ShapeQuantifierCore.get("inputLandmarksSelector")
         self.inputLandmarksSelector.setMRMLScene(slicer.mrmlScene)
         self.inputLandmarksSelector.setEnabled(False) # The "enable" property seems to not be imported from the .ui
-        self.loadLandmarksOnSurfacCheckBox = self.LongitudinalQuantificationCore.get("loadLandmarksOnSurfacCheckBox")
-        self.landmarksScaleWidget = self.LongitudinalQuantificationCore.get("landmarksScaleWidget")
-        self.addLandmarksButton = self.LongitudinalQuantificationCore.get("addLandmarksButton")
-        self.surfaceDeplacementCheckBox = self.LongitudinalQuantificationCore.get("surfaceDeplacementCheckBox")
-        self.landmarkComboBox = self.LongitudinalQuantificationCore.get("landmarkComboBox")
-        self.radiusDefinitionWidget = self.LongitudinalQuantificationCore.get("radiusDefinitionWidget")
-        self.cleanerButton = self.LongitudinalQuantificationCore.get("cleanerButton")
-        self.correspondentShapes = self.LongitudinalQuantificationCore.get("correspondentShapes")
-        self.nonCorrespondentShapes = self.LongitudinalQuantificationCore.get("nonCorrespondentShapes")
-        self.propagationInputComboBox = self.LongitudinalQuantificationCore.get("propagationInputComboBox")
+        self.loadLandmarksOnSurfacCheckBox = self.ShapeQuantifierCore.get("loadLandmarksOnSurfacCheckBox")
+        self.landmarksScaleWidget = self.ShapeQuantifierCore.get("landmarksScaleWidget")
+        self.addLandmarksButton = self.ShapeQuantifierCore.get("addLandmarksButton")
+        self.surfaceDeplacementCheckBox = self.ShapeQuantifierCore.get("surfaceDeplacementCheckBox")
+        self.landmarkComboBox = self.ShapeQuantifierCore.get("landmarkComboBox")
+        self.radiusDefinitionWidget = self.ShapeQuantifierCore.get("radiusDefinitionWidget")
+        self.cleanerButton = self.ShapeQuantifierCore.get("cleanerButton")
+        self.correspondentShapes = self.ShapeQuantifierCore.get("correspondentShapes")
+        self.nonCorrespondentShapes = self.ShapeQuantifierCore.get("nonCorrespondentShapes")
+        self.propagationInputComboBox = self.ShapeQuantifierCore.get("propagationInputComboBox")
         self.propagationInputComboBox.setMRMLScene(slicer.mrmlScene)
-        self.propagateButton = self.LongitudinalQuantificationCore.get("propagateButton")
+        self.propagateButton = self.ShapeQuantifierCore.get("propagateButton")
 
         # ------------------------------------------------------------------------------------
         #                                   CONNECTIONS
@@ -104,16 +104,16 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         end = list.GetNumberOfItems()
         for i in range(0,end):
             fidList = list.GetItemAsObject(i)
-            landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+            landmarkDescription = self.ShapeQuantifierCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
             if landmarkDescription:
                 for n in range(fidList.GetNumberOfMarkups()):
                     markupID = fidList.GetNthMarkupID(n)
                     markupLabel = fidList.GetNthMarkupLabel(n)
                     landmarkDescription[markupID]["landmarkLabel"] = markupLabel
-                fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
+                fidList.SetAttribute("landmarkDescription",self.ShapeQuantifierCore.encodeJSON(landmarkDescription))
 
         onSurface = self.loadLandmarksOnSurfacCheckBox.isChecked()
-        self.LongitudinalQuantificationCore.connectLandmarks(self.inputModelSelector,
+        self.ShapeQuantifierCore.connectLandmarks(self.inputModelSelector,
                               self.inputLandmarksSelector,
                               onSurface)
 
@@ -127,21 +127,21 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         self.radiusDefinitionWidget.value = 0.0
         self.landmarksScaleWidget.value = 2.0
         self.landmarkComboBox.clear()
-        self.LongitudinalQuantificationCore.selectedFidList = None
-        self.LongitudinalQuantificationCore.selectedModel = None
+        self.ShapeQuantifierCore.selectedFidList = None
+        self.ShapeQuantifierCore.selectedModel = None
 
     def UpdateInterface(self):
-        if not self.LongitudinalQuantificationCore.selectedModel:
+        if not self.ShapeQuantifierCore.selectedModel:
             return
-        activeInput = self.LongitudinalQuantificationCore.selectedModel
-        if not self.LongitudinalQuantificationCore.selectedFidList:
+        activeInput = self.ShapeQuantifierCore.selectedModel
+        if not self.ShapeQuantifierCore.selectedFidList:
             return
-        fidList = self.LongitudinalQuantificationCore.selectedFidList
-        selectedFidReflID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
+        fidList = self.ShapeQuantifierCore.selectedFidList
+        selectedFidReflID = self.ShapeQuantifierCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
 
         if activeInput:
             # Update values on widgets.
-            landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+            landmarkDescription = self.ShapeQuantifierCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
             if landmarkDescription and selectedFidReflID:
                 activeDictLandmarkValue = landmarkDescription[selectedFidReflID]
                 self.radiusDefinitionWidget.value = activeDictLandmarkValue["ROIradius"]
@@ -151,29 +151,29 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
                     self.surfaceDeplacementCheckBox.setChecked(False)
             else:
                 self.radiusDefinitionWidget.value = 0.0
-            self.LongitudinalQuantificationCore.UpdateThreeDView(self.landmarkComboBox.currentText)
+            self.ShapeQuantifierCore.UpdateThreeDView(self.landmarkComboBox.currentText)
 
 
     def onModelChanged(self):
         print "-------Model Changed--------"
-        if self.LongitudinalQuantificationCore.selectedModel:
-            Model = self.LongitudinalQuantificationCore.selectedModel
+        if self.ShapeQuantifierCore.selectedModel:
+            Model = self.ShapeQuantifierCore.selectedModel
             try:
-                Model.RemoveObserver(self.LongitudinalQuantificationCore.decodeJSON(self.LongitudinalQuantificationCore.selectedModel.GetAttribute("modelModifieTagEvent")))
+                Model.RemoveObserver(self.ShapeQuantifierCore.decodeJSON(self.ShapeQuantifierCore.selectedModel.GetAttribute("modelModifieTagEvent")))
             except:
                 pass
-        self.LongitudinalQuantificationCore.selectedModel = self.inputModelSelector.currentNode()
-        self.LongitudinalQuantificationCore.ModelChanged(self.inputModelSelector, self.inputLandmarksSelector)
+        self.ShapeQuantifierCore.selectedModel = self.inputModelSelector.currentNode()
+        self.ShapeQuantifierCore.ModelChanged(self.inputModelSelector, self.inputLandmarksSelector)
         self.inputLandmarksSelector.setCurrentNode(None)
 
     def onLandmarksChanged(self):
         print "-------Landmarks Changed--------"
         if self.inputModelSelector.currentNode():
-            self.LongitudinalQuantificationCore.selectedFidList = self.inputLandmarksSelector.currentNode()
-            self.LongitudinalQuantificationCore.selectedModel = self.inputModelSelector.currentNode()
+            self.ShapeQuantifierCore.selectedFidList = self.inputLandmarksSelector.currentNode()
+            self.ShapeQuantifierCore.selectedModel = self.inputModelSelector.currentNode()
             if self.inputLandmarksSelector.currentNode():
                 onSurface = self.loadLandmarksOnSurfacCheckBox.isChecked()
-                self.LongitudinalQuantificationCore.connectLandmarks(self.inputModelSelector,
+                self.ShapeQuantifierCore.connectLandmarks(self.inputModelSelector,
                                       self.inputLandmarksSelector,
                                       onSurface)
             else:
@@ -184,46 +184,46 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         # If no input model selected, the addition of fiducial shouldn't be possible.
         selectionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLSelectionNodeSingleton")
         selectionNode.SetReferenceActivePlaceNodeClassName("vtkMRMLMarkupsFiducialNode")
-        if self.LongitudinalQuantificationCore.selectedModel:
-            if self.LongitudinalQuantificationCore.selectedFidList:
-                selectionNode.SetActivePlaceNodeID(self.LongitudinalQuantificationCore.selectedFidList.GetID())
+        if self.ShapeQuantifierCore.selectedModel:
+            if self.ShapeQuantifierCore.selectedFidList:
+                selectionNode.SetActivePlaceNodeID(self.ShapeQuantifierCore.selectedFidList.GetID())
                 self.interactionNode.SetCurrentInteractionMode(1)
             else:
-                self.LongitudinalQuantificationCore.warningMessage("Please select a fiducial list")
+                self.ShapeQuantifierCore.warningMessage("Please select a fiducial list")
         else:
-            self.LongitudinalQuantificationCore.warningMessage("Please select a model")
+            self.ShapeQuantifierCore.warningMessage("Please select a model")
 
     def onLandmarksScaleChanged(self):
-        if not self.LongitudinalQuantificationCore.selectedFidList:
-            self.LongitudinalQuantificationCore.warningMessage("Please select a fiducial list")
+        if not self.ShapeQuantifierCore.selectedFidList:
+            self.ShapeQuantifierCore.warningMessage("Please select a fiducial list")
             return
         print "------------Landmark scaled change-----------"
-        displayFiducialNode = self.LongitudinalQuantificationCore.selectedFidList.GetMarkupsDisplayNode()
+        displayFiducialNode = self.ShapeQuantifierCore.selectedFidList.GetMarkupsDisplayNode()
         disabledModify = displayFiducialNode.StartModify()
         displayFiducialNode.SetGlyphScale(self.landmarksScaleWidget.value)
         displayFiducialNode.SetTextScale(self.landmarksScaleWidget.value)
         displayFiducialNode.EndModify(disabledModify)
 
     def onSurfaceDeplacementStateChanged(self):
-        activeInput = self.LongitudinalQuantificationCore.selectedModel
+        activeInput = self.ShapeQuantifierCore.selectedModel
         if not activeInput:
             return
-        fidList = self.LongitudinalQuantificationCore.selectedFidList
+        fidList = self.ShapeQuantifierCore.selectedFidList
         if not fidList:
             return
-        selectedFidReflID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
+        selectedFidReflID = self.ShapeQuantifierCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
         isOnSurface = self.surfaceDeplacementCheckBox.isChecked()
-        landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.ShapeQuantifierCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         if isOnSurface:
             hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
             landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = True
             landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] =\
-                self.LongitudinalQuantificationCore.projectOnSurface(hardenModel, fidList, selectedFidReflID)
+                self.ShapeQuantifierCore.projectOnSurface(hardenModel, fidList, selectedFidReflID)
         else:
             landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = False
             landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] = None
             landmarkDescription[selectedFidReflID]["ROIradius"] = 0
-        fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
+        fidList.SetAttribute("landmarkDescription",self.ShapeQuantifierCore.encodeJSON(landmarkDescription))
 
 
     def onLandmarkComboBoxChanged(self):
@@ -232,12 +232,12 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
 
     def onRadiusValueChanged(self):
         print "--------- ROI radius modification ----------"
-        fidList = self.LongitudinalQuantificationCore.selectedFidList
+        fidList = self.ShapeQuantifierCore.selectedFidList
         if not fidList:
             return
-        selectedFidReflID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
+        selectedFidReflID = self.ShapeQuantifierCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
         if selectedFidReflID:
-            landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+            landmarkDescription = self.ShapeQuantifierCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
             activeLandmarkState = landmarkDescription[selectedFidReflID]
             activeLandmarkState["ROIradius"] = self.radiusDefinitionWidget.value
             if not activeLandmarkState["projection"]["isProjected"]:
@@ -245,9 +245,9 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
                 hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
                 landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = True
                 landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] =\
-                    self.LongitudinalQuantificationCore.projectOnSurface(hardenModel, fidList, selectedFidReflID)
-            fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
-            self.LongitudinalQuantificationCore.findROI(fidList)
+                    self.ShapeQuantifierCore.projectOnSurface(hardenModel, fidList, selectedFidReflID)
+            fidList.SetAttribute("landmarkDescription",self.ShapeQuantifierCore.encodeJSON(landmarkDescription))
+            self.ShapeQuantifierCore.findROI(fidList)
 
     def onCleanButton(self):
         messageBox = ctk.ctkMessageBox()
@@ -277,7 +277,7 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
         for model in modelToPropList:
             if model.GetID() != self.inputModelSelector.currentNode().GetID():
                 finalList.append(model.GetID())
-        self.inputLandmarksSelector.currentNode().SetAttribute("modelToPropList",self.LongitudinalQuantificationCore.encodeJSON({"modelToPropList":finalList}))
+        self.inputLandmarksSelector.currentNode().SetAttribute("modelToPropList",self.ShapeQuantifierCore.encodeJSON({"modelToPropList":finalList}))
 
     def onPropagateButton(self):
         print " ------------------------------------ onPropagateButton -------------------------------------- "
@@ -296,23 +296,23 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
                 modelToPropIDList.append(modelToProp.GetID())
         # verification if the list is not empty
         if len(modelToPropIDList) is 0:
-            self.LongitudinalQuantificationCore.warningMessage("Please select at list one model for propagation")
+            self.ShapeQuantifierCore.warningMessage("Please select at list one model for propagation")
             return
 
         # propagation
-        isSourceModelClean = self.LongitudinalQuantificationCore.decodeJSON(model.GetAttribute("isClean"))
-        hardenModel = self.LongitudinalQuantificationCore.createIntermediateHardenModel(model)
+        isSourceModelClean = self.ShapeQuantifierCore.decodeJSON(model.GetAttribute("isClean"))
+        hardenModel = self.ShapeQuantifierCore.createIntermediateHardenModel(model)
         model.SetAttribute("hardenModelID",hardenModel.GetID())
         arrayName = fidList.GetAttribute("arrayName")
         for modelToPropagateID in modelToPropIDList:
             modelToPropagate = slicer.mrmlScene.GetNodeByID(modelToPropagateID)
-            isModelToPropagateClean = self.LongitudinalQuantificationCore.decodeJSON(modelToPropagate.GetAttribute("isClean"))
+            isModelToPropagateClean = self.ShapeQuantifierCore.decodeJSON(modelToPropagate.GetAttribute("isClean"))
 
             if self.correspondentShapes.isChecked() and (isSourceModelClean != isModelToPropagateClean):
-                self.LongitudinalQuantificationCore.warningMessage("caution, some models seams to not be "
+                self.ShapeQuantifierCore.warningMessage("caution, some models seams to not be "
                                                "clean wereath while some others "
                                                "are, it could make a bad propagation!")
-            hardenModel = self.LongitudinalQuantificationCore.createIntermediateHardenModel(modelToPropagate)
+            hardenModel = self.ShapeQuantifierCore.createIntermediateHardenModel(modelToPropagate)
             modelToPropagate.SetAttribute("hardenModelID",hardenModel.GetID())
             if self.correspondentShapes.isChecked():
                 fidList.SetAttribute("typeOfPropagation","correspondentShapes")
@@ -325,8 +325,8 @@ class PickAndPaintWidget(ScriptedLoadableModuleWidget):
 
 
 class PickAndPaintLogic(ScriptedLoadableModuleLogic):
-    def __init__(self, interface, LongitudinalQuantificationCore):
-        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore
+    def __init__(self, interface, ShapeQuantifierCore):
+        self.ShapeQuantifierCore = ShapeQuantifierCore
         self.interface = interface
 
     def cleanerAndTriangleFilter(self, inputModel):
@@ -339,23 +339,23 @@ class PickAndPaintLogic(ScriptedLoadableModuleLogic):
         inputModel.SetAndObservePolyData(triangleFilter.GetOutput())
 
     def cleanMesh(self, selectedLandmark):
-        activeInput = self.LongitudinalQuantificationCore.selectedModel
-        fidList = self.LongitudinalQuantificationCore.selectedFidList
+        activeInput = self.ShapeQuantifierCore.selectedModel
+        fidList = self.ShapeQuantifierCore.selectedFidList
         hardenModel = slicer.app.mrmlScene().GetNodeByID(activeInput.GetAttribute("hardenModelID"))
         if activeInput:
             # Clean the mesh with vtkCleanPolyData cleaner and vtkTriangleFilter:
             self.cleanerAndTriangleFilter(activeInput)
             self.cleanerAndTriangleFilter(hardenModel)
             # Define the new ROI:
-            selectedLandmarkID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, selectedLandmark)
+            selectedLandmarkID = self.ShapeQuantifierCore.findIDFromLabel(fidList, selectedLandmark)
             if selectedLandmarkID:
-                landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+                landmarkDescription = self.ShapeQuantifierCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
                 landmarkDescription[selectedLandmarkID]["projection"]["closestPointIndex"] =\
-                    self.LongitudinalQuantificationCore.projectOnSurface(hardenModel, fidList, selectedLandmarkID)
-                fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
-            fidList.SetAttribute("isClean",self.LongitudinalQuantificationCore.encodeJSON({"isClean":True}))
+                    self.ShapeQuantifierCore.projectOnSurface(hardenModel, fidList, selectedLandmarkID)
+                fidList.SetAttribute("landmarkDescription",self.ShapeQuantifierCore.encodeJSON(landmarkDescription))
+            fidList.SetAttribute("isClean",self.ShapeQuantifierCore.encodeJSON({"isClean":True}))
             connectedModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("connectedModelID"))
-            connectedModel.SetAttribute("isClean",self.LongitudinalQuantificationCore.encodeJSON({"isClean":True}))
+            connectedModel.SetAttribute("isClean",self.ShapeQuantifierCore.encodeJSON({"isClean":True}))
 
 
     def propagateCorrespondent(self, referenceInputModel, propagatedInputModel, arrayName):
@@ -367,7 +367,7 @@ class PickAndPaintLogic(ScriptedLoadableModuleLogic):
             if propagatedPointData.GetArray(arrayName): # Array already exists
                 propagatedPointData.RemoveArray(arrayName)
             propagatedPointData.AddArray(arrayToPropagate)
-            self.LongitudinalQuantificationCore.displayROI(propagatedInputModel, arrayName)
+            self.ShapeQuantifierCore.displayROI(propagatedInputModel, arrayName)
         else:
             print " NO ROI ARRAY FOUND. PLEASE DEFINE ONE BEFORE."
             return
@@ -375,23 +375,23 @@ class PickAndPaintLogic(ScriptedLoadableModuleLogic):
     def propagateNonCorrespondent(self, fidList, modelToPropagate):
         print modelToPropagate.GetAttribute("hardenModelID")
         hardenModel = slicer.app.mrmlScene().GetNodeByID(modelToPropagate.GetAttribute("hardenModelID"))
-        landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.ShapeQuantifierCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         arrayName = fidList.GetAttribute("arrayName")
         ROIPointListID = vtk.vtkIdList()
         for key,activeLandmarkState in landmarkDescription.iteritems():
             tempROIPointListID = vtk.vtkIdList()
             markupsIndex = fidList.GetMarkupIndexByID(key)
-            indexClosestPoint = self.LongitudinalQuantificationCore.getClosestPointIndex(fidList,modelToPropagate.GetPolyData(),markupsIndex)
+            indexClosestPoint = self.ShapeQuantifierCore.getClosestPointIndex(fidList,modelToPropagate.GetPolyData(),markupsIndex)
             if activeLandmarkState["ROIradius"] != 0:
-                self.LongitudinalQuantificationCore.defineNeighbor(tempROIPointListID,
+                self.ShapeQuantifierCore.defineNeighbor(tempROIPointListID,
                                     hardenModel.GetPolyData(),
                                     indexClosestPoint,
                                     activeLandmarkState["ROIradius"])
             for j in range(0, tempROIPointListID.GetNumberOfIds()):
                 ROIPointListID.InsertUniqueId(tempROIPointListID.GetId(j))
         listID = ROIPointListID
-        self.LongitudinalQuantificationCore.addArrayFromIdList(listID, modelToPropagate, arrayName)
-        self.LongitudinalQuantificationCore.displayROI(modelToPropagate, arrayName)
+        self.ShapeQuantifierCore.addArrayFromIdList(listID, modelToPropagate, arrayName)
+        self.ShapeQuantifierCore.displayROI(modelToPropagate, arrayName)
 
 class PickAndPaintTest(ScriptedLoadableModuleTest):
     def setUp(self):
@@ -486,7 +486,7 @@ class PickAndPaintTest(ScriptedLoadableModuleTest):
         widget.inputLandmarksSelector.setCurrentNode(self.inputMarkupsFiducial)
         for point in PointsCoords:
             self.inputMarkupsFiducial.AddFiducial(point[0], point[1], point[2])
-            widget.LongitudinalQuantificationCore.onPointModifiedEvent(self.inputMarkupsFiducial,None)
+            widget.ShapeQuantifierCore.onPointModifiedEvent(self.inputMarkupsFiducial,None)
             widget.radiusDefinitionWidget.value = 3.0
 
         return self.compare_ROIS(self.inputMarkupsFiducial, Model, FinalModel)

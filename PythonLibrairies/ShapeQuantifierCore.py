@@ -10,7 +10,7 @@ import time
 
 
 
-class LongitudinalQuantificationCore():
+class ShapeQuantifierCore():
 
     def __init__(self, parent = None, interface = None):
 

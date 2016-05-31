@@ -48,12 +48,12 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
-        import LongitudinalQuantificationCore
-        reload(LongitudinalQuantificationCore)
+        import ShapeQuantifierCore
+        reload(ShapeQuantifierCore)
 
         # GLOBALS:
-        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore.LongitudinalQuantificationCore(interface = self)
-        self.logic = EasyClipLogic(self, self.LongitudinalQuantificationCore)
+        self.ShapeQuantifierCore = ShapeQuantifierCore.ShapeQuantifierCore(interface = self)
+        self.logic = EasyClipLogic(self, self.ShapeQuantifierCore)
         self.ignoredNodeNames = ('Red Volume Slice', 'Yellow Volume Slice', 'Green Volume Slice')
         self.colorSliceVolumes = dict()
         self.dictionnaryModel = dict()
@@ -73,22 +73,22 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
         self.widget = widget
         self.layout.addWidget(widget)
         ##--------------------------- Scene --------------------------#
-        self.SceneCollapsibleButton = self.LongitudinalQuantificationCore.get("SceneCollapsibleButton") # this atribute is usefull for Longitudinal quantification extension
-        treeView = self.LongitudinalQuantificationCore.get("treeView")
+        self.SceneCollapsibleButton = self.ShapeQuantifierCore.get("SceneCollapsibleButton") # this atribute is usefull for Shape Quantifier extension
+        treeView = self.ShapeQuantifierCore.get("treeView")
         treeView.setMRMLScene(slicer.app.mrmlScene())
         treeView.sceneModel().setHorizontalHeaderLabels(["Models"])
         treeView.sortFilterProxyModel().nodeTypes = ['vtkMRMLModelNode']
         treeView.header().setVisible(False)
-        self.autoChangeLayout = self.LongitudinalQuantificationCore.get("autoChangeLayout")
-        self.computeBox = self.LongitudinalQuantificationCore.get("computeBox")
+        self.autoChangeLayout = self.ShapeQuantifierCore.get("autoChangeLayout")
+        self.computeBox = self.ShapeQuantifierCore.get("computeBox")
         self.computeBox.connect('clicked()', self.onComputeBox)
         #--------------------------- Clipping Part --------------------------#
         # CLIPPING BUTTONS
 
-        self.red_plane_box = self.LongitudinalQuantificationCore.get("red_plane_box")
-        self.radio_red_Neg = self.LongitudinalQuantificationCore.get("radio_red_Neg")
+        self.red_plane_box = self.ShapeQuantifierCore.get("red_plane_box")
+        self.radio_red_Neg = self.ShapeQuantifierCore.get("radio_red_Neg")
         self.radio_red_Neg.setIcon(qt.QIcon(":/Icons/RedSpaceNegative.png"))
-        self.radio_red_Pos = self.LongitudinalQuantificationCore.get("radio_red_Pos")
+        self.radio_red_Pos = self.ShapeQuantifierCore.get("radio_red_Pos")
         self.radio_red_Pos.setIcon(qt.QIcon(":/Icons/RedSpacePositive.png"))
         self.red_plane_box.connect('clicked(bool)', lambda: self.logic.onCheckBoxClicked('Red',
                                                                                          self.red_plane_box,
@@ -105,10 +105,10 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
                                                                                   self.red_plane_box.isChecked(),
                                                                                   self.radio_red_Neg.isChecked(),
                                                                                   self.radio_red_Pos.isChecked()))
-        self.yellow_plane_box = self.LongitudinalQuantificationCore.get("yellow_plane_box")
-        self.radio_yellow_Neg= self.LongitudinalQuantificationCore.get("radio_yellow_Neg")
+        self.yellow_plane_box = self.ShapeQuantifierCore.get("yellow_plane_box")
+        self.radio_yellow_Neg= self.ShapeQuantifierCore.get("radio_yellow_Neg")
         self.radio_yellow_Neg.setIcon(qt.QIcon(":/Icons/YellowSpaceNegative.png"))
-        self.radio_yellow_Pos = self.LongitudinalQuantificationCore.get("radio_yellow_Pos")
+        self.radio_yellow_Pos = self.ShapeQuantifierCore.get("radio_yellow_Pos")
         self.radio_yellow_Pos.setIcon(qt.QIcon(":/Icons/YellowSpacePositive.png"))
         self.yellow_plane_box.connect('clicked(bool)', lambda: self.logic.onCheckBoxClicked('Yellow',
                                                                                             self.yellow_plane_box,
@@ -125,10 +125,10 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
                                                                                   self.yellow_plane_box.isChecked(),
                                                                                   self.radio_yellow_Neg.isChecked(),
                                                                                   self.radio_yellow_Pos.isChecked()))
-        self.green_plane_box = self.LongitudinalQuantificationCore.get("green_plane_box")
-        self.radio_green_Neg= self.LongitudinalQuantificationCore.get("radio_green_Neg")
+        self.green_plane_box = self.ShapeQuantifierCore.get("green_plane_box")
+        self.radio_green_Neg= self.ShapeQuantifierCore.get("radio_green_Neg")
         self.radio_green_Neg.setIcon(qt.QIcon(":/Icons/GreenSpaceNegative.png"))
-        self.radio_green_Pos = self.LongitudinalQuantificationCore.get("radio_green_Pos")
+        self.radio_green_Pos = self.ShapeQuantifierCore.get("radio_green_Pos")
         self.radio_green_Pos.setIcon(qt.QIcon(":/Icons/GreenSpacePositive.png"))
         self.green_plane_box.connect('clicked(bool)', lambda: self.logic.onCheckBoxClicked('Green',
                                                                                            self.green_plane_box,
@@ -145,14 +145,14 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
                                                                                   self.green_plane_box.isChecked(),
                                                                                   self.radio_green_Neg.isChecked(),
                                                                                   self.radio_green_Pos.isChecked()))
-        self.ClippingButton = self.LongitudinalQuantificationCore.get("ClippingButton")
+        self.ClippingButton = self.ShapeQuantifierCore.get("ClippingButton")
         self.ClippingButton.connect('clicked()', self.ClippingButtonClicked)
-        self.UndoButton = self.LongitudinalQuantificationCore.get("UndoButton")
+        self.UndoButton = self.ShapeQuantifierCore.get("UndoButton")
         self.UndoButton.connect('clicked()', self.UndoButtonClicked)
         # -------------------------------- PLANES --------------------------------#
-        self.CollapsibleButton3 = self.LongitudinalQuantificationCore.get("CollapsibleButton3")
-        self.save = self.LongitudinalQuantificationCore.get("save")
-        self.read = self.LongitudinalQuantificationCore.get("read")
+        self.CollapsibleButton3 = self.ShapeQuantifierCore.get("CollapsibleButton3")
+        self.save = self.ShapeQuantifierCore.get("save")
+        self.read = self.ShapeQuantifierCore.get("read")
         self.save.connect('clicked(bool)', self.savePlane)
         self.read.connect('clicked(bool)', self.readPlane)
         #-------------------- onCloseScene ----------------------#
@@ -181,13 +181,13 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
         end = list.GetNumberOfItems()
         for i in range(0,end):
             fidList = list.GetItemAsObject(i)
-            landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+            landmarkDescription = self.ShapeQuantifierCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
             if landmarkDescription:
                 for n in range(fidList.GetNumberOfMarkups()):
                     markupID = fidList.GetNthMarkupID(n)
                     markupLabel = fidList.GetNthMarkupLabel(n)
                     landmarkDescription[markupID]["landmarkLabel"] = markupLabel
-                fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
+                fidList.SetAttribute("landmarkDescription",self.ShapeQuantifierCore.encodeJSON(landmarkDescription))
         self.onComputeBox()
 
         self.logic.onCheckBoxClicked('Red', self.red_plane_box, self.radio_red_Neg)
@@ -255,7 +255,7 @@ class EasyClipWidget(ScriptedLoadableModuleWidget):
         bound = [maxValue, -maxValue, maxValue, -maxValue, maxValue, -maxValue]
         for i in positionOfVisibleNodes:
             node = slicer.mrmlScene.GetNthNodeByClass(i, "vtkMRMLModelNode")
-            model = self.LongitudinalQuantificationCore.createIntermediateHardenModel(node)
+            model = self.ShapeQuantifierCore.createIntermediateHardenModel(node)
             polydata = model.GetPolyData()
             if polydata is None or not hasattr(polydata, "GetBounds"):
                 continue
@@ -374,9 +374,9 @@ class EasyClipLogic(ScriptedLoadableModuleLogic):
             # Plane for cliping
             self.vtkPlane = vtk.vtkPlane()
 
-    def __init__(self, interface, LongitudinalQuantificationCore):
+    def __init__(self, interface, ShapeQuantifierCore):
         self.interface = interface
-        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore
+        self.ShapeQuantifierCore = ShapeQuantifierCore
         self.ColorNodeCorrespondence = {'Red': 'vtkMRMLSliceNodeRed',
                                         'Yellow': 'vtkMRMLSliceNodeYellow',
                                         'Green': 'vtkMRMLSliceNodeGreen'}
@@ -481,13 +481,13 @@ class EasyClipLogic(ScriptedLoadableModuleLogic):
         landmarkDescriptioncopy = fidList.GetAttribute("landmarkDescription")
         fidList.SetAttribute("connectedModelID", None)
         fidList.SetAttribute("hardenModelID", None)
-        landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.ShapeQuantifierCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         for n in range(fidList.GetNumberOfMarkups()):
             markupID = fidList.GetNthMarkupID(n)
             landmarkDescription[markupID]["projection"]["isProjected"] = False
             landmarkDescription[markupID]["projection"]["closestPointIndex"] = None
             landmarkDescription[markupID]["ROIradius"] = 0
-        fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
+        fidList.SetAttribute("landmarkDescription",self.ShapeQuantifierCore.encodeJSON(landmarkDescription))
         return ModelID, hardenModelID, landmarkDescriptioncopy
 
 

@@ -48,12 +48,12 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
-        import LongitudinalQuantificationCore
-        reload(LongitudinalQuantificationCore)
+        import ShapeQuantifierCore
+        reload(ShapeQuantifierCore)
 
         # GLOBALS:
-        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore.LongitudinalQuantificationCore(interface = self)
-        self.logic = Q3DCLogic(interface=self, LongitudinalQuantificationCore=self.LongitudinalQuantificationCore)
+        self.ShapeQuantifierCore = ShapeQuantifierCore.ShapeQuantifierCore(interface = self)
+        self.logic = Q3DCLogic(interface=self, ShapeQuantifierCore=self.ShapeQuantifierCore)
         self.interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
         self.computedDistanceList = list()
         self.computedAnglesList = list()
@@ -77,48 +77,48 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.layout.addWidget(widget)
 
         #--------------------------- Scene --------------------------#
-        self.SceneCollapsibleButton = self.LongitudinalQuantificationCore.get("SceneCollapsibleButton") # this atribute is usefull for Longitudinal quantification extension
-        treeView = self.LongitudinalQuantificationCore.get("treeView")
+        self.SceneCollapsibleButton = self.ShapeQuantifierCore.get("SceneCollapsibleButton") # this atribute is usefull for Shape Quantifier extension
+        treeView = self.ShapeQuantifierCore.get("treeView")
         treeView.setMRMLScene(slicer.app.mrmlScene())
         treeView.sceneModel().setHorizontalHeaderLabels(["Models"])
         treeView.sortFilterProxyModel().nodeTypes = ['vtkMRMLModelNode','vtkMRMLMarkupsFiducialNode']
         treeView.header().setVisible(False)
         # --------------- landmark modification --------------
-        self.inputModelLabel = self.LongitudinalQuantificationCore.get("inputModelLabel")  # this atribute is usefull for Longitudinal quantification extension
-        self.inputLandmarksLabel = self.LongitudinalQuantificationCore.get("inputLandmarksLabel")  # this atribute is usefull for Longitudinal quantification extension
-        self.landmarkModif = self.LongitudinalQuantificationCore.get("landmarkModif")
-        self.inputModelSelector = self.LongitudinalQuantificationCore.get("inputModelSelector")
+        self.inputModelLabel = self.ShapeQuantifierCore.get("inputModelLabel")  # this atribute is usefull for Shape Quantifier extension
+        self.inputLandmarksLabel = self.ShapeQuantifierCore.get("inputLandmarksLabel")  # this atribute is usefull for Shape Quantifier extension
+        self.landmarkModif = self.ShapeQuantifierCore.get("landmarkModif")
+        self.inputModelSelector = self.ShapeQuantifierCore.get("inputModelSelector")
         self.inputModelSelector.setMRMLScene(slicer.mrmlScene)
         self.inputModelSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onModelChanged)
-        self.addLandmarkButton = self.LongitudinalQuantificationCore.get("addLandmarkButton")
+        self.addLandmarkButton = self.ShapeQuantifierCore.get("addLandmarkButton")
         self.addLandmarkButton.connect('clicked()', self.onAddLandmarkButtonClicked)
-        self.inputLandmarksSelector = self.LongitudinalQuantificationCore.get("inputLandmarksSelector")
+        self.inputLandmarksSelector = self.ShapeQuantifierCore.get("inputLandmarksSelector")
         self.inputLandmarksSelector.setMRMLScene(slicer.mrmlScene)
         self.inputLandmarksSelector.setEnabled(False) # The "enable" property seems to not be imported from the .ui
         self.inputLandmarksSelector.connect('currentNodeChanged(vtkMRMLNode*)', self.onLandmarksChanged)
-        self.loadLandmarksOnSurfacCheckBox = self.LongitudinalQuantificationCore.get("loadLandmarksOnSurfacCheckBox")
-        self.landmarkComboBox = self.LongitudinalQuantificationCore.get("landmarkComboBox")
+        self.loadLandmarksOnSurfacCheckBox = self.ShapeQuantifierCore.get("loadLandmarksOnSurfacCheckBox")
+        self.landmarkComboBox = self.ShapeQuantifierCore.get("landmarkComboBox")
         self.landmarkComboBox.connect('currentIndexChanged(QString)', self.UpdateInterface)
-        self.surfaceDeplacementCheckBox = self.LongitudinalQuantificationCore.get("surfaceDeplacementCheckBox")
+        self.surfaceDeplacementCheckBox = self.ShapeQuantifierCore.get("surfaceDeplacementCheckBox")
         self.surfaceDeplacementCheckBox.connect('stateChanged(int)', self.onSurfaceDeplacementStateChanged)
         #        ----------------- Compute Mid Point -------------
-        self.midPointGroupBox = self.LongitudinalQuantificationCore.get("midPointGroupBox")
-        self.landmarkComboBox1 = self.LongitudinalQuantificationCore.get("landmarkComboBox1")
+        self.midPointGroupBox = self.ShapeQuantifierCore.get("midPointGroupBox")
+        self.landmarkComboBox1 = self.ShapeQuantifierCore.get("landmarkComboBox1")
         self.landmarkComboBox1.connect('currentIndexChanged(int)', self.UpdateInterface)
-        self.landmarkComboBox2 = self.LongitudinalQuantificationCore.get("landmarkComboBox2")
+        self.landmarkComboBox2 = self.ShapeQuantifierCore.get("landmarkComboBox2")
         self.landmarkComboBox2.connect('currentIndexChanged(int)', self.UpdateInterface)
-        self.defineMiddlePointButton = self.LongitudinalQuantificationCore.get("defineMiddlePointButton")
+        self.defineMiddlePointButton = self.ShapeQuantifierCore.get("defineMiddlePointButton")
         self.defineMiddlePointButton.connect('clicked()', self.onDefineMidPointClicked)
-        self.midPointOnSurfaceCheckBox = self.LongitudinalQuantificationCore.get("midPointOnSurfaceCheckBox")
+        self.midPointOnSurfaceCheckBox = self.ShapeQuantifierCore.get("midPointOnSurfaceCheckBox")
 #        ------------------- 1st OPTION -------------------
-        self.distanceGroupBox = self.LongitudinalQuantificationCore.get("distanceGroupBox")
-        self.landmarkComboBoxA = self.LongitudinalQuantificationCore.get("landmarkComboBoxA")
-        self.fidListComboBoxA = self.LongitudinalQuantificationCore.get("fidListComboBoxA")
+        self.distanceGroupBox = self.ShapeQuantifierCore.get("distanceGroupBox")
+        self.landmarkComboBoxA = self.ShapeQuantifierCore.get("landmarkComboBoxA")
+        self.fidListComboBoxA = self.ShapeQuantifierCore.get("fidListComboBoxA")
         self.fidListComboBoxA.setMRMLScene(slicer.mrmlScene)
-        self.landmarkComboBoxB = self.LongitudinalQuantificationCore.get("landmarkComboBoxB")
-        self.fidListComboBoxB = self.LongitudinalQuantificationCore.get("fidListComboBoxB")
+        self.landmarkComboBoxB = self.ShapeQuantifierCore.get("landmarkComboBoxB")
+        self.fidListComboBoxB = self.ShapeQuantifierCore.get("fidListComboBoxB")
         self.fidListComboBoxB.setMRMLScene(slicer.mrmlScene)
-        self.computeDistancesPushButton = self.LongitudinalQuantificationCore.get("computeDistancesPushButton")
+        self.computeDistancesPushButton = self.ShapeQuantifierCore.get("computeDistancesPushButton")
         self.computeDistancesPushButton.connect('clicked()', self.onComputeDistanceClicked)
         self.landmarkComboBoxA.connect('currentIndexChanged(int)', self.UpdateInterface)
         self.landmarkComboBoxB.connect('currentIndexChanged(int)', self.UpdateInterface)
@@ -127,7 +127,7 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.fidListComboBoxB.connect('currentNodeChanged(vtkMRMLNode*)',
                                       lambda: self.logic.UpdateLandmarkComboboxA(self.fidListComboBoxB, self.landmarkComboBoxB))
         # ---------------------------- Directory - Export Button -----------------------------
-        self.distanceLayout = self.LongitudinalQuantificationCore.get("distanceLayout")
+        self.distanceLayout = self.ShapeQuantifierCore.get("distanceLayout")
         self.distanceTable = qt.QTableWidget()
         self.directoryExportDistance = ctk.ctkDirectoryButton()
         self.exportDistanceButton = qt.QPushButton(" Export ")
@@ -139,24 +139,24 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.tableAndExportLayout.addWidget(self.distanceTable)
         self.tableAndExportLayout.addLayout(self.exportDistanceLayout)
 #       ------------------- 2nd OPTION -------------------
-        self.angleLayout = self.LongitudinalQuantificationCore.get("angleLayout")
-        self.angleGroupBox = self.LongitudinalQuantificationCore.get("angleGroupBox")
-        self.line1LAComboBox = self.LongitudinalQuantificationCore.get("line1LAComboBox")
-        self.fidListComboBoxline1LA = self.LongitudinalQuantificationCore.get("fidListComboBoxline1LA")
+        self.angleLayout = self.ShapeQuantifierCore.get("angleLayout")
+        self.angleGroupBox = self.ShapeQuantifierCore.get("angleGroupBox")
+        self.line1LAComboBox = self.ShapeQuantifierCore.get("line1LAComboBox")
+        self.fidListComboBoxline1LA = self.ShapeQuantifierCore.get("fidListComboBoxline1LA")
         self.fidListComboBoxline1LA.setMRMLScene(slicer.mrmlScene)
-        self.line1LBComboBox = self.LongitudinalQuantificationCore.get("line1LBComboBox")
-        self.fidListComboBoxline1LB = self.LongitudinalQuantificationCore.get("fidListComboBoxline1LB")
+        self.line1LBComboBox = self.ShapeQuantifierCore.get("line1LBComboBox")
+        self.fidListComboBoxline1LB = self.ShapeQuantifierCore.get("fidListComboBoxline1LB")
         self.fidListComboBoxline1LB.setMRMLScene(slicer.mrmlScene)
-        self.line2LAComboBox = self.LongitudinalQuantificationCore.get("line2LAComboBox")
-        self.fidListComboBoxline2LA = self.LongitudinalQuantificationCore.get("fidListComboBoxline2LA")
+        self.line2LAComboBox = self.ShapeQuantifierCore.get("line2LAComboBox")
+        self.fidListComboBoxline2LA = self.ShapeQuantifierCore.get("fidListComboBoxline2LA")
         self.fidListComboBoxline2LA.setMRMLScene(slicer.mrmlScene)
-        self.line2LBComboBox = self.LongitudinalQuantificationCore.get("line2LBComboBox")
-        self.fidListComboBoxline2LB = self.LongitudinalQuantificationCore.get("fidListComboBoxline2LB")
+        self.line2LBComboBox = self.ShapeQuantifierCore.get("line2LBComboBox")
+        self.fidListComboBoxline2LB = self.ShapeQuantifierCore.get("fidListComboBoxline2LB")
         self.fidListComboBoxline2LB.setMRMLScene(slicer.mrmlScene)
-        self.pitchCheckBox = self.LongitudinalQuantificationCore.get("pitchCheckBox")
-        self.rollCheckBox = self.LongitudinalQuantificationCore.get("rollCheckBox")
-        self.yawCheckBox = self.LongitudinalQuantificationCore.get("yawCheckBox")
-        self.computeAnglesPushButton = self.LongitudinalQuantificationCore.get("computeAnglesPushButton")
+        self.pitchCheckBox = self.ShapeQuantifierCore.get("pitchCheckBox")
+        self.rollCheckBox = self.ShapeQuantifierCore.get("rollCheckBox")
+        self.yawCheckBox = self.ShapeQuantifierCore.get("yawCheckBox")
+        self.computeAnglesPushButton = self.ShapeQuantifierCore.get("computeAnglesPushButton")
         self.fidListComboBoxline1LA.connect('currentNodeChanged(vtkMRMLNode*)',
                                       lambda: self.logic.UpdateLandmarkComboboxA(self.fidListComboBoxline1LA, self.line1LAComboBox))
         self.fidListComboBoxline1LB.connect('currentNodeChanged(vtkMRMLNode*)',
@@ -186,17 +186,17 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.tableAndExportAngleLayout.addWidget(self.anglesTable)
         self.tableAndExportAngleLayout.addLayout(self.exportAngleLayout)
 #       ------------------- 3rd OPTION -------------------
-        self.linePointGroupBox = self.LongitudinalQuantificationCore.get("linePointGroupBox")
-        self.lineLAComboBox = self.LongitudinalQuantificationCore.get("lineLAComboBox")
-        self.fidListComboBoxlineLA = self.LongitudinalQuantificationCore.get("fidListComboBoxlineLA")
+        self.linePointGroupBox = self.ShapeQuantifierCore.get("linePointGroupBox")
+        self.lineLAComboBox = self.ShapeQuantifierCore.get("lineLAComboBox")
+        self.fidListComboBoxlineLA = self.ShapeQuantifierCore.get("fidListComboBoxlineLA")
         self.fidListComboBoxlineLA.setMRMLScene(slicer.mrmlScene)
-        self.lineLBComboBox = self.LongitudinalQuantificationCore.get("lineLBComboBox")
-        self.fidListComboBoxlineLB = self.LongitudinalQuantificationCore.get("fidListComboBoxlineLB")
+        self.lineLBComboBox = self.ShapeQuantifierCore.get("lineLBComboBox")
+        self.fidListComboBoxlineLB = self.ShapeQuantifierCore.get("fidListComboBoxlineLB")
         self.fidListComboBoxlineLB.setMRMLScene(slicer.mrmlScene)
-        self.linePointComboBox = self.LongitudinalQuantificationCore.get("linePointComboBox")
-        self.fidListComboBoxlinePoint = self.LongitudinalQuantificationCore.get("fidListComboBoxlinePoint")
+        self.linePointComboBox = self.ShapeQuantifierCore.get("linePointComboBox")
+        self.fidListComboBoxlinePoint = self.ShapeQuantifierCore.get("fidListComboBoxlinePoint")
         self.fidListComboBoxlinePoint.setMRMLScene(slicer.mrmlScene)
-        self.computeLinePointPushButton = self.LongitudinalQuantificationCore.get("computeLinePointPushButton")
+        self.computeLinePointPushButton = self.ShapeQuantifierCore.get("computeLinePointPushButton")
         self.fidListComboBoxlineLA.connect('currentNodeChanged(vtkMRMLNode*)',
                                       lambda: self.logic.UpdateLandmarkComboboxA(self.fidListComboBoxlineLA, self.lineLAComboBox))
         self.fidListComboBoxlineLB.connect('currentNodeChanged(vtkMRMLNode*)',
@@ -207,7 +207,7 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.lineLAComboBox.connect('currentIndexChanged(int)', self.UpdateInterface)
         self.lineLBComboBox.connect('currentIndexChanged(int)', self.UpdateInterface)
         # ---------------------------- Directory - Export Button -----------------------------
-        self.LinePointLayout = self.LongitudinalQuantificationCore.get("LinePointLayout")
+        self.LinePointLayout = self.ShapeQuantifierCore.get("LinePointLayout")
         self.linePointTable = qt.QTableWidget()
         self.directoryExportLinePoint = ctk.ctkDirectoryButton()
         self.exportLinePointButton = qt.QPushButton("Export")
@@ -282,16 +282,16 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         end = list.GetNumberOfItems()
         for i in range(0,end):
             fidList = list.GetItemAsObject(i)
-            landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+            landmarkDescription = self.ShapeQuantifierCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
             if landmarkDescription:
                 for n in range(fidList.GetNumberOfMarkups()):
                     markupID = fidList.GetNthMarkupID(n)
                     markupLabel = fidList.GetNthMarkupLabel(n)
                     landmarkDescription[markupID]["landmarkLabel"] = markupLabel
-                fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
+                fidList.SetAttribute("landmarkDescription",self.ShapeQuantifierCore.encodeJSON(landmarkDescription))
 
         onSurface = self.loadLandmarksOnSurfacCheckBox.isChecked()
-        self.LongitudinalQuantificationCore.connectLandmarks(self.inputModelSelector,
+        self.ShapeQuantifierCore.connectLandmarks(self.inputModelSelector,
                               self.inputLandmarksSelector,
                               onSurface)
 
@@ -357,28 +357,28 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
                                                     self.lineLBComboBox.currentText,
                                                     self.fidListComboBoxlineLA.currentNode(),
                                                     self.fidListComboBoxlineLB.currentNode())
-        self.LongitudinalQuantificationCore.UpdateThreeDView(self.landmarkComboBox.currentText)
+        self.ShapeQuantifierCore.UpdateThreeDView(self.landmarkComboBox.currentText)
 
     def onModelChanged(self):
         print "-------Model Changed--------"
-        if self.LongitudinalQuantificationCore.selectedModel:
-            Model = self.LongitudinalQuantificationCore.selectedModel
+        if self.ShapeQuantifierCore.selectedModel:
+            Model = self.ShapeQuantifierCore.selectedModel
             try:
-                Model.RemoveObserver(self.LongitudinalQuantificationCore.decodeJSON(self.LongitudinalQuantificationCore.selectedModel.GetAttribute("modelModifieTagEvent")))
+                Model.RemoveObserver(self.ShapeQuantifierCore.decodeJSON(self.ShapeQuantifierCore.selectedModel.GetAttribute("modelModifieTagEvent")))
             except:
                 pass
-        self.LongitudinalQuantificationCore.selectedModel = self.inputModelSelector.currentNode()
-        self.LongitudinalQuantificationCore.ModelChanged(self.inputModelSelector, self.inputLandmarksSelector)
+        self.ShapeQuantifierCore.selectedModel = self.inputModelSelector.currentNode()
+        self.ShapeQuantifierCore.ModelChanged(self.inputModelSelector, self.inputLandmarksSelector)
         self.inputLandmarksSelector.setCurrentNode(None)
 
     def onLandmarksChanged(self):
         print "-------Landmarks Changed--------"
         if self.inputModelSelector.currentNode():
-            self.LongitudinalQuantificationCore.selectedFidList = self.inputLandmarksSelector.currentNode()
-            self.LongitudinalQuantificationCore.selectedModel = self.inputModelSelector.currentNode()
+            self.ShapeQuantifierCore.selectedFidList = self.inputLandmarksSelector.currentNode()
+            self.ShapeQuantifierCore.selectedModel = self.inputModelSelector.currentNode()
             if self.inputLandmarksSelector.currentNode():
                 onSurface = self.loadLandmarksOnSurfacCheckBox.isChecked()
-                self.LongitudinalQuantificationCore.connectLandmarks(self.inputModelSelector,
+                self.ShapeQuantifierCore.connectLandmarks(self.inputModelSelector,
                                       self.inputLandmarksSelector,
                                       onSurface)
             else:
@@ -389,47 +389,47 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         # If no input model selected, the addition of fiducial shouldn't be possible.
         selectionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLSelectionNodeSingleton")
         selectionNode.SetReferenceActivePlaceNodeClassName("vtkMRMLMarkupsFiducialNode")
-        if self.LongitudinalQuantificationCore.selectedModel:
-            if self.LongitudinalQuantificationCore.selectedFidList:
-                selectionNode.SetActivePlaceNodeID(self.LongitudinalQuantificationCore.selectedFidList.GetID())
+        if self.ShapeQuantifierCore.selectedModel:
+            if self.ShapeQuantifierCore.selectedFidList:
+                selectionNode.SetActivePlaceNodeID(self.ShapeQuantifierCore.selectedFidList.GetID())
                 self.interactionNode.SetCurrentInteractionMode(1)
             else:
-                self.LongitudinalQuantificationCore.warningMessage("Please select a fiducial list")
+                self.ShapeQuantifierCore.warningMessage("Please select a fiducial list")
         else:
-            self.LongitudinalQuantificationCore.warningMessage("Please select a model")
+            self.ShapeQuantifierCore.warningMessage("Please select a model")
 
     def onSurfaceDeplacementStateChanged(self):
-        activeInput = self.LongitudinalQuantificationCore.selectedModel
+        activeInput = self.ShapeQuantifierCore.selectedModel
         if not activeInput:
             return
-        fidList = self.LongitudinalQuantificationCore.selectedFidList
+        fidList = self.ShapeQuantifierCore.selectedFidList
         if not fidList:
             return
-        selectedFidReflID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
+        selectedFidReflID = self.ShapeQuantifierCore.findIDFromLabel(fidList, self.landmarkComboBox.currentText)
         isOnSurface = self.surfaceDeplacementCheckBox.isChecked()
-        landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.ShapeQuantifierCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         if isOnSurface:
             hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
             landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = True
             landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] =\
-                self.LongitudinalQuantificationCore.projectOnSurface(hardenModel, fidList, selectedFidReflID)
+                self.ShapeQuantifierCore.projectOnSurface(hardenModel, fidList, selectedFidReflID)
         else:
             landmarkDescription[selectedFidReflID]["projection"]["isProjected"] = False
             landmarkDescription[selectedFidReflID]["projection"]["closestPointIndex"] = None
             landmarkDescription[selectedFidReflID]["ROIradius"] = 0
-        fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
+        fidList.SetAttribute("landmarkDescription",self.ShapeQuantifierCore.encodeJSON(landmarkDescription))
 
     def onDefineMidPointClicked(self):
-        fidList = self.LongitudinalQuantificationCore.selectedFidList
+        fidList = self.ShapeQuantifierCore.selectedFidList
         if not fidList:
-            self.LongitudinalQuantificationCore.warningMessage("Please select a model of reference and afiducial List.")
-        landmark1ID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList,self.landmarkComboBox1.currentText)
-        landmark2ID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList,self.landmarkComboBox2.currentText)
-        coord = self.LongitudinalQuantificationCore.calculateMidPointCoord(fidList, landmark1ID, landmark2ID)
+            self.ShapeQuantifierCore.warningMessage("Please select a model of reference and afiducial List.")
+        landmark1ID = self.ShapeQuantifierCore.findIDFromLabel(fidList,self.landmarkComboBox1.currentText)
+        landmark2ID = self.ShapeQuantifierCore.findIDFromLabel(fidList,self.landmarkComboBox2.currentText)
+        coord = self.ShapeQuantifierCore.calculateMidPointCoord(fidList, landmark1ID, landmark2ID)
         fidList.AddFiducial(coord[0],coord[1],coord[2])
         fidList.SetNthFiducialSelected(fidList.GetNumberOfMarkups() - 1, False)
         # update of the data structure
-        landmarkDescription = self.LongitudinalQuantificationCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
+        landmarkDescription = self.ShapeQuantifierCore.decodeJSON(fidList.GetAttribute("landmarkDescription"))
         numOfMarkups = fidList.GetNumberOfMarkups()
         markupID = fidList.GetNthMarkupID(numOfMarkups - 1)
         landmarkDescription[landmark1ID]["midPoint"]["definedByThisMarkup"].append(markupID)
@@ -444,12 +444,12 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
             landmarkDescription[markupID]["projection"]["isProjected"] = True
             hardenModel = slicer.app.mrmlScene().GetNodeByID(fidList.GetAttribute("hardenModelID"))
             landmarkDescription[markupID]["projection"]["closestPointIndex"] = \
-                self.LongitudinalQuantificationCore.projectOnSurface(hardenModel, fidList, markupID)
+                self.ShapeQuantifierCore.projectOnSurface(hardenModel, fidList, markupID)
         else:
             landmarkDescription[markupID]["projection"]["isProjected"] = False
-        fidList.SetAttribute("landmarkDescription",self.LongitudinalQuantificationCore.encodeJSON(landmarkDescription))
+        fidList.SetAttribute("landmarkDescription",self.ShapeQuantifierCore.encodeJSON(landmarkDescription))
         self.UpdateInterface()
-        self.LongitudinalQuantificationCore.updateLandmarkComboBox(fidList, self.landmarkComboBox, False)
+        self.ShapeQuantifierCore.updateLandmarkComboBox(fidList, self.landmarkComboBox, False)
         fidList.SetNthFiducialPositionFromArray(numOfMarkups - 1, coord)
 
     def onComputeDistanceClicked(self):
@@ -516,9 +516,9 @@ class Q3DCWidget(ScriptedLoadableModuleWidget):
         self.logic.exportationFunction(self.directoryExportLinePoint, self.computedLinePointList, 'linePoint')
 
 class Q3DCLogic(ScriptedLoadableModuleLogic):
-    def __init__(self, interface, LongitudinalQuantificationCore):
+    def __init__(self, interface, ShapeQuantifierCore):
         self.interface = interface
-        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore
+        self.ShapeQuantifierCore = ShapeQuantifierCore
         self.numberOfDecimals = 3
         system = qt.QLocale().system()
         self.decimalPoint = chr(system.decimalPoint())
@@ -587,7 +587,7 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
 
     def getComboboxesToUpdate(self, fidList):
         comboboxesToUpdate = list()
-        if self.LongitudinalQuantificationCore.selectedFidList is fidList:
+        if self.ShapeQuantifierCore.selectedFidList is fidList:
             comboboxesToUpdate.append(self.interface.landmarkComboBox1)
             comboboxesToUpdate.append(self.interface.landmarkComboBox2)
         #update of the Comboboxes that display the fidcial list just modified
@@ -611,8 +611,8 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
                round(threeDDistance, self.numberOfDecimals)
 
     def addOnDistanceList(self, distanceList, fidLabel1, fidLabel2, fidlist1, fidlist2):
-        fidID1 = self.LongitudinalQuantificationCore.findIDFromLabel(fidlist1,fidLabel1)
-        fidID2 = self.LongitudinalQuantificationCore.findIDFromLabel(fidlist2,fidLabel2)
+        fidID1 = self.ShapeQuantifierCore.findIDFromLabel(fidlist1,fidLabel1)
+        fidID2 = self.ShapeQuantifierCore.findIDFromLabel(fidlist2,fidLabel2)
         landmark1Index = fidlist1.GetMarkupIndexByID(fidID1)
         landmark2Index = fidlist2.GetMarkupIndexByID(fidID2)
         elementToAdd = self.distanceValuesStorage()
@@ -783,10 +783,10 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
                        fidLabel1A, fidLabel1B, fidlist1A, fidlist1B,
                        fidLabel2A, fidLabel2B, fidlist2A, fidlist2B,
                        PitchState, YawState, RollState):
-        fidID1A = self.LongitudinalQuantificationCore.findIDFromLabel(fidlist1A,fidLabel1A)
-        fidID1B= self.LongitudinalQuantificationCore.findIDFromLabel(fidlist1B,fidLabel1B)
-        fidID2A = self.LongitudinalQuantificationCore.findIDFromLabel(fidlist2A,fidLabel2A)
-        fidID2B = self.LongitudinalQuantificationCore.findIDFromLabel(fidlist2B,fidLabel2B)
+        fidID1A = self.ShapeQuantifierCore.findIDFromLabel(fidlist1A,fidLabel1A)
+        fidID1B= self.ShapeQuantifierCore.findIDFromLabel(fidlist1B,fidLabel1B)
+        fidID2A = self.ShapeQuantifierCore.findIDFromLabel(fidlist2A,fidLabel2A)
+        fidID2B = self.ShapeQuantifierCore.findIDFromLabel(fidlist2B,fidLabel2B)
         landmark1Index = fidlist1A.GetMarkupIndexByID(fidID1A)
         landmark2Index = fidlist1B.GetMarkupIndexByID(fidID1B)
         landmark3Index = fidlist2A.GetMarkupIndexByID(fidID2A)
@@ -922,11 +922,11 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
                            fidLabelLineA, fidLabelLineB,
                            fidListLineLA, fidListLineLB,
                            fidLabelPoint, fidListPoint):
-        lineLAID = self.LongitudinalQuantificationCore.findIDFromLabel(fidListLineLA, fidLabelLineA)
+        lineLAID = self.ShapeQuantifierCore.findIDFromLabel(fidListLineLA, fidLabelLineA)
         lineLAIndex = fidListLineLA.GetMarkupIndexByID(lineLAID)
-        lineLBID = self.LongitudinalQuantificationCore.findIDFromLabel(fidListLineLB, fidLabelLineB)
+        lineLBID = self.ShapeQuantifierCore.findIDFromLabel(fidListLineLB, fidLabelLineB)
         lineLBIndex = fidListLineLB.GetMarkupIndexByID(lineLBID)
-        PointID = self.LongitudinalQuantificationCore.findIDFromLabel(fidListPoint, fidLabelPoint)
+        PointID = self.ShapeQuantifierCore.findIDFromLabel(fidListPoint, fidLabelPoint)
         PointIndex = fidListPoint.GetMarkupIndexByID(PointID)
         elementToAdd = self.distanceLinePointStorage()
         # if this distance has already been computed before -> replace values
@@ -1016,8 +1016,8 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
     def drawLineBetween2Landmark(self, landmark1label, landmark2label, fidList1, fidList2):
         if not fidList1 or not fidList2 or not landmark1label or not landmark2label:
             return
-        landmark1ID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList1, landmark1label)
-        landmark2ID = self.LongitudinalQuantificationCore.findIDFromLabel(fidList2, landmark2label)
+        landmark1ID = self.ShapeQuantifierCore.findIDFromLabel(fidList1, landmark1label)
+        landmark2ID = self.ShapeQuantifierCore.findIDFromLabel(fidList2, landmark2label)
 
         if not fidList1 or not fidList2:
             return None, None
@@ -1159,7 +1159,7 @@ class Q3DCLogic(ScriptedLoadableModuleLogic):
 
     def UpdateLandmarkComboboxA(self, fidListCombobox, landmarkCombobox):
         self.comboboxdict[landmarkCombobox] = fidListCombobox.currentNode()
-        self.LongitudinalQuantificationCore.updateLandmarkComboBox(fidListCombobox.currentNode(), landmarkCombobox)
+        self.ShapeQuantifierCore.updateLandmarkComboBox(fidListCombobox.currentNode(), landmarkCombobox)
         self.interface.UpdateInterface()
 
 
@@ -1304,7 +1304,7 @@ class Q3DCTest(ScriptedLoadableModuleTest):
         self.widget.inputLandmarksSelector.setCurrentNode(inputMarkupsFiducial)
         for point in PlanePointsCoords:
             inputMarkupsFiducial.AddFiducial(point[0], point[1], point[2])
-            self.widget.LongitudinalQuantificationCore.onPointModifiedEvent(inputMarkupsFiducial,None)
+            self.widget.ShapeQuantifierCore.onPointModifiedEvent(inputMarkupsFiducial,None)
 
         return True
 

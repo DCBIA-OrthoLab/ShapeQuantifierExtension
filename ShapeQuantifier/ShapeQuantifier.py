@@ -49,14 +49,14 @@ class ExternalModuleTab():
         self.showCurrentModule()
 
 # ************************************************************* #
-# **************** Longitudinal Quantification **************** #
+# **************** Shape Quantifier **************** #
 # ************************************************************* #
 
-class LongitudinalQuantification(slicer.ScriptedLoadableModule.ScriptedLoadableModule):
+class ShapeQuantifier(slicer.ScriptedLoadableModule.ScriptedLoadableModule):
     def __init__(self, parent):
 
         slicer.ScriptedLoadableModule.ScriptedLoadableModule.__init__(self, parent)
-        parent.title = "Longitudinal Quantification"
+        parent.title = "Shape Quantifier"
         parent.categories = ["Quantification"]
         parent.dependencies = []
         parent.contributors = ["Jean-Baptiste Vimort"]
@@ -75,10 +75,10 @@ class LongitudinalQuantification(slicer.ScriptedLoadableModule.ScriptedLoadableM
         self.parent = parent
 
 # ******************************************************************* #
-# **************** Longitudinal Quantification Widget *************** #
+# **************** Shape Quantifier Widget *************** #
 # ******************************************************************* #
 
-class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget):
+class ShapeQuantifierWidget(slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget):
 
     # ************************************************ #
     # ---------------- Initialisation ---------------- #
@@ -86,8 +86,8 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
 
     def setup(self):
         slicer.ScriptedLoadableModule.ScriptedLoadableModuleWidget.setup(self)
-        print "----- Longitudinal Quantification widget setup -----"
-        self.moduleName = 'LongitudinalQuantification'
+        print "----- Shape Quantifier widget setup -----"
+        self.moduleName = 'ShapeQuantifier'
         scriptedModulesPath = eval('slicer.modules.%s.path' % self.moduleName.lower())
         scriptedModulesPath = os.path.dirname(scriptedModulesPath)
 
@@ -95,12 +95,12 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         sys.path.insert(0, libPath)
 
         # import the external library that contain the functions comon to all DCBIA modules
-        import LongitudinalQuantificationCore
-        reload(LongitudinalQuantificationCore)
+        import ShapeQuantifierCore
+        reload(ShapeQuantifierCore)
 
-        # ------ Initialisation of Longitudinal quantification and its logic ----- #
-        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore.LongitudinalQuantificationCore(interface = self)
-        self.logic = LongitudinalQuantificationLogic(self, self.LongitudinalQuantificationCore)
+        # ------ Initialisation of Shape Quantifier and its logic ----- #
+        self.ShapeQuantifierCore = ShapeQuantifierCore.ShapeQuantifierCore(interface = self)
+        self.logic = ShapeQuantifierLogic(self, self.ShapeQuantifierCore)
 
         # ---------------------------------------------------------------- #
         # ---------------- Definition of the UI interface ---------------- #
@@ -118,8 +118,8 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         self.layout.addWidget(widget)
 
         # ------ Scene Collapsible Button ----- #
-        self.SceneCollapsibleButton = self.LongitudinalQuantificationCore.get("SceneCollapsibleButton")
-        treeView = self.LongitudinalQuantificationCore.get("treeView")
+        self.SceneCollapsibleButton = self.ShapeQuantifierCore.get("SceneCollapsibleButton")
+        treeView = self.ShapeQuantifierCore.get("treeView")
         treeView.setMRMLScene(slicer.app.mrmlScene())
         treeView.sortFilterProxyModel().nodeTypes = ['vtkMRMLModelNode','vtkMRMLMarkupsFiducialNode']
         sceneModel = treeView.sceneModel()
@@ -131,31 +131,31 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         treeViewHeader.setResizeMode(sceneModel.nameColumn,qt.QHeaderView.Stretch)
         treeViewHeader.setResizeMode(sceneModel.colorColumn,qt.QHeaderView.ResizeToContents)
         treeViewHeader.setResizeMode(sceneModel.opacityColumn,qt.QHeaderView.ResizeToContents)
-        self.computeBoxPushButton = self.LongitudinalQuantificationCore.get("computeBoxPushButton")
+        self.computeBoxPushButton = self.ShapeQuantifierCore.get("computeBoxPushButton")
 
         # ------ Step Group Box ----- #
-        self.ModelRadioGroupBox = self.LongitudinalQuantificationCore.get("ModelRadioGroupBox")
+        self.ModelRadioGroupBox = self.ShapeQuantifierCore.get("ModelRadioGroupBox")
         self.ModelRadioGroupBox.hide()
-        self.Model1RadioButton = self.LongitudinalQuantificationCore.get("Model1RadioButton")
-        self.LongitudinalQuantificationCore.get("verticalLayout_4").setAlignment(0x84)
-        self.Model2RadioButton = self.LongitudinalQuantificationCore.get("Model2RadioButton")
-        self.LongitudinalQuantificationCore.get("verticalLayout_5").setAlignment(0x84)
+        self.Model1RadioButton = self.ShapeQuantifierCore.get("Model1RadioButton")
+        self.ShapeQuantifierCore.get("verticalLayout_4").setAlignment(0x84)
+        self.Model2RadioButton = self.ShapeQuantifierCore.get("Model2RadioButton")
+        self.ShapeQuantifierCore.get("verticalLayout_5").setAlignment(0x84)
 
         # ------ Data selection Collapsible Button ----- #
-        self.DataSelectionCollapsibleButton = self.LongitudinalQuantificationCore.get("DataSelectionCollapsibleButton")
-        self.SingleModelRadioButton = self.LongitudinalQuantificationCore.get("SingleModelRadioButton")
-        self.TwoModelsRadioButton = self.LongitudinalQuantificationCore.get("TwoModelsRadioButton")
-        self.LongitudinalQuantificationCore.get("verticalLayout_6").setAlignment(0x84)
-        self.LongitudinalQuantificationCore.get("verticalLayout_7").setAlignment(0x84)
-        self.Model1groupBox = self.LongitudinalQuantificationCore.get("Model1groupBox")
-        self.Model1MRMLNodeComboBox = self.LongitudinalQuantificationCore.get("Model1MRMLNodeComboBox")
+        self.DataSelectionCollapsibleButton = self.ShapeQuantifierCore.get("DataSelectionCollapsibleButton")
+        self.SingleModelRadioButton = self.ShapeQuantifierCore.get("SingleModelRadioButton")
+        self.TwoModelsRadioButton = self.ShapeQuantifierCore.get("TwoModelsRadioButton")
+        self.ShapeQuantifierCore.get("verticalLayout_6").setAlignment(0x84)
+        self.ShapeQuantifierCore.get("verticalLayout_7").setAlignment(0x84)
+        self.Model1groupBox = self.ShapeQuantifierCore.get("Model1groupBox")
+        self.Model1MRMLNodeComboBox = self.ShapeQuantifierCore.get("Model1MRMLNodeComboBox")
         self.Model1MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
-        self.FidList1MRMLNodeComboBox = self.LongitudinalQuantificationCore.get("FidList1MRMLNodeComboBox")
+        self.FidList1MRMLNodeComboBox = self.ShapeQuantifierCore.get("FidList1MRMLNodeComboBox")
         self.FidList1MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
-        self.Model2groupBox = self.LongitudinalQuantificationCore.get("Model2groupBox")
-        self.Model2MRMLNodeComboBox = self.LongitudinalQuantificationCore.get("Model2MRMLNodeComboBox")
+        self.Model2groupBox = self.ShapeQuantifierCore.get("Model2groupBox")
+        self.Model2MRMLNodeComboBox = self.ShapeQuantifierCore.get("Model2MRMLNodeComboBox")
         self.Model2MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
-        self.FidList2MRMLNodeComboBox = self.LongitudinalQuantificationCore.get("FidList2MRMLNodeComboBox")
+        self.FidList2MRMLNodeComboBox = self.ShapeQuantifierCore.get("FidList2MRMLNodeComboBox")
         self.FidList2MRMLNodeComboBox.setMRMLScene(slicer.mrmlScene)
 
         self.ExternalModuleTabDict = dict()
@@ -163,9 +163,9 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         listOfTab = ["Preprocessing","Quantification","Analysis"]
         for tab in listOfTab:
             self.ExternalModuleTabDict[tab] = ExternalModuleTab()
-            self.ExternalModuleTabDict[tab].collapsibleButton = self.LongitudinalQuantificationCore.get(tab + "CollapsibleButton")
-            self.ExternalModuleTabDict[tab].layout = self.LongitudinalQuantificationCore.get(tab + "Layout")
-            self.ExternalModuleTabDict[tab].choiceComboBox = self.LongitudinalQuantificationCore.get(tab + "ChoiceComboBox")
+            self.ExternalModuleTabDict[tab].collapsibleButton = self.ShapeQuantifierCore.get(tab + "CollapsibleButton")
+            self.ExternalModuleTabDict[tab].layout = self.ShapeQuantifierCore.get(tab + "Layout")
+            self.ExternalModuleTabDict[tab].choiceComboBox = self.ShapeQuantifierCore.get(tab + "ChoiceComboBox")
 
         # ------------------------------------------------------------------------------ #
         # ---------------- Setup and initialisation of global variables ---------------- #
@@ -261,10 +261,10 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
         for key, value in self.ExternalPythonModules.iteritems():
             slicer.util.reloadScriptedModule(value.moduleName)
 
-    # function called each time that the user "enter" in Longitudinal Quantification interface
+    # function called each time that the user "enter" in Shape Quantifier interface
     def enter(self):
-        print "---- Enter Longitudinal Quantification ---- "
-        # Hiding the input selection of each module when entering in Longitudinal quantification
+        print "---- Enter Shape Quantifier ---- "
+        # Hiding the input selection of each module when entering in Shape Quantifier
         for key, value in self.ExternalPythonModules.iteritems():
             if hasattr(value, 'SceneCollapsibleButton'):
                 value.SceneCollapsibleButton.hide()
@@ -283,11 +283,11 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
             if not ExternalModule.collapsibleButton.collapsed:
                 ExternalModule.showCurrentModule()
 
-    # function called each time that the user "exit" in Longitudinal Quantification interface
+    # function called each time that the user "exit" in Shape Quantifier interface
     def exit(self):
-        print "---- Exit Longitudinal Quantification ---- "
-        # Showing the input selection of each module when exiting Longitudinal quantification
-        # This allow the user to normaly use the modules without Longitudinal Quantification
+        print "---- Exit Shape Quantifier ---- "
+        # Showing the input selection of each module when exiting Shape Quantifier
+        # This allow the user to normaly use the modules without Shape Quantifier
         for key, value in self.ExternalPythonModules.iteritems():
             if hasattr(value, 'SceneCollapsibleButton'):
                 value.SceneCollapsibleButton.show()
@@ -304,9 +304,9 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
                 value.movingModel.show()
             value.layout.addWidget(value.widget)
 
-    # function called each time that the scene is closed (if Longitudinal Quantification has been initialized)
+    # function called each time that the scene is closed (if Shape Quantifier has been initialized)
     def onCloseScene(self, obj, event):
-        print "---- Close Longitudinal Quantification ---- "
+        print "---- Close Shape Quantifier ---- "
         for ExtModTab in self.ExternalModuleTabDict.itervalues():
             ExtModTab.choiceComboBox.setCurrentIndex(0)
 
@@ -403,45 +403,45 @@ class LongitudinalQuantificationWidget(slicer.ScriptedLoadableModule.ScriptedLoa
                             ExtModTab.currentModule.onMovingModelRadio()
 
 # ******************************************************************* #
-# **************** Longitudinal Quantification Logic **************** #
+# **************** Shape Quantifier Logic **************** #
 # ******************************************************************* #
 
-class LongitudinalQuantificationLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
+class ShapeQuantifierLogic(slicer.ScriptedLoadableModule.ScriptedLoadableModuleLogic):
 
     # ************************************************ #
     # ---------------- Initialisation ---------------- #
     # ************************************************ #
 
-    def __init__(self, interface, LongitudinalQuantificationCore):
-        print "----- Longitudinal Quantification logic init -----"
+    def __init__(self, interface, ShapeQuantifierCore):
+        print "----- Shape Quantifier logic init -----"
         self.interface = interface
-        self.LongitudinalQuantificationCore = LongitudinalQuantificationCore
+        self.ShapeQuantifierCore = ShapeQuantifierCore
 
 # ****************************************************************** #
-# **************** Longitudinal Quantification Test **************** #
+# **************** Shape Quantifier Test **************** #
 # ****************************************************************** #
 
-class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoadableModuleTest):
+class ShapeQuantifierTest(slicer.ScriptedLoadableModule.ScriptedLoadableModuleTest):
 
     # ******************************************************** #
     # ---------------- Setup / initialisation ---------------- #
     # ******************************************************** #
 
     def setUp(self):
-        print "----- Longitudinal Quantification test setup -----"
+        print "----- Shape Quantifier test setup -----"
         # reset the state - clear scene
         self.delayDisplay("Clear the scene")
         slicer.mrmlScene.Clear(0)
 
-        self.widget = slicer.modules.LongitudinalQuantificationWidget
+        self.widget = slicer.modules.ShapeQuantifierWidget
         self.logic = self.widget.logic
-        self.LongitudinalQuantificationCore = self.widget.LongitudinalQuantificationCore
+        self.ShapeQuantifierCore = self.widget.ShapeQuantifierCore
 
     def runTest(self):
         # run all tests needed
         self.setUp()
 
-        self.delayDisplay("Starting the test of LongitudinalQuantificationCore")
+        self.delayDisplay("Starting the test of ShapeQuantifierCore")
         self.TestCore()
 
         self.delayDisplay("Starting the test of AnglePlanes")
@@ -462,7 +462,7 @@ class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoada
         self.delayDisplay("All test passed!")
 
     # ************************************************************************ #
-    # ---------------- Test of LongitudinalQuantificationCore ---------------- #
+    # ---------------- Test of ShapeQuantifierCore ---------------- #
     # ************************************************************************ #
 
     def TestCore(self):
@@ -492,13 +492,13 @@ class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoada
         markupsLogic = self.defineMarkupsLogic()
 
 
-        closestPointIndexList.append(self.LongitudinalQuantificationCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+        closestPointIndexList.append(self.ShapeQuantifierCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
                                                                 polyData,
                                                                 0))
-        closestPointIndexList.append(self.LongitudinalQuantificationCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+        closestPointIndexList.append(self.ShapeQuantifierCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
                                                                 polyData,
                                                                 1))
-        closestPointIndexList.append(self.LongitudinalQuantificationCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+        closestPointIndexList.append(self.ShapeQuantifierCore.getClosestPointIndex(slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
                                                                 polyData,
                                                                 2))
 
@@ -518,7 +518,7 @@ class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoada
         closestPointIndexList = [9, 35, 1]
         coord = [-1, -1, -1]
         for i in range(0, slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()).GetNumberOfFiducials() ):
-            self.LongitudinalQuantificationCore.replaceLandmark(polyData, slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
+            self.ShapeQuantifierCore.replaceLandmark(polyData, slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()),
                                   i,
                                   closestPointIndexList[i])
             slicer.mrmlScene.GetNodeByID(markupsLogic.GetActiveListID()).GetNthFiducialPosition(i, coord)
@@ -543,7 +543,7 @@ class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoada
 
         for i in range(0, 3):
             inter = vtk.vtkIdList()
-            self.LongitudinalQuantificationCore.defineNeighbor(inter,
+            self.ShapeQuantifierCore.defineNeighbor(inter,
                                  polyData,
                                  closestPointIndexList[i],
                                  i + 1)
@@ -565,8 +565,8 @@ class LongitudinalQuantificationTest(slicer.ScriptedLoadableModule.ScriptedLoada
         closestPointIndexList = [9, 35, 1]
         for i in range(0, 3):
             inter = vtk.vtkIdList()
-            self.LongitudinalQuantificationCore.defineNeighbor(inter, polyData, closestPointIndexList[i], i + 1)
-            self.LongitudinalQuantificationCore.addArrayFromIdList(inter,
+            self.ShapeQuantifierCore.defineNeighbor(inter, polyData, closestPointIndexList[i], i + 1)
+            self.ShapeQuantifierCore.addArrayFromIdList(inter,
                                      sphereModel,
                                      'Test_' + str(i + 1))
             if polyData.GetPointData().HasArray('Test_' + str(i + 1)) != 1:

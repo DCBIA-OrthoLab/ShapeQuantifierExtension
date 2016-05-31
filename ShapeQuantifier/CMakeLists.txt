@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-set(MODULE_NAME LongitudinalQuantification)
+set(MODULE_NAME ShapeQuantifier)
 
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
